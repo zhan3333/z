@@ -1,0 +1,20 @@
+{
+  "require": {
+    "monolog/monolog": "*",
+    "doctrine/orm": "2.4.*",
+    "hprose/hprose-swoole": "dev-master",
+    "respect/validation": "*",
+    "phpmailer/phpmailer": "~5.2"
+  },
+  "autoload": {
+    "psr-4" : {
+      "App\\":["src/", "src/lib"]
+    }
+  },
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://packagist.phpcomposer.com"
+    }
+  }
+}

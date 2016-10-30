@@ -58,11 +58,12 @@ class main extends Hprose\Swoole\WebSocket\Server
         } else {
             echo ' Worker ' .  $worker_id .  ' Start', PHP_EOL;
             cli_set_process_title(APP_PREFIX.' worker #'.$worker_id);
+            Err::init();
             //进程0执行的操作
             if (0 == $worker_id) {
 
             }
-            $this->onBeforeInvoke = [$this, 'beforeCall'];
+            $this->onBeforeInvoke = [$this, 'beforeCall'];  // 处理hprose客户端发来的消息前执行
             $this->setGetEnabled(true);
             $this->setCrossDomainEnabled(true);             //是否允许跨域
             $this->setP3PEnabled(true);                     //向浏览器声明自己的隐私规则
@@ -176,22 +177,12 @@ class main extends Hprose\Swoole\WebSocket\Server
      */
     public function beforeCall($name, &$args, $byRef, $context)
     {
-        $server = Factory::swoole();
-        if (isset($context->fd)) {
-            // websocket长连接
-            $fd = $context->fd;
-            $clientInfo = $server->getClientInfo($fd);
-            // 客户端IP获取(兼容 $_SERVER)
-            if (!empty($clientInfo)) $_SERVER['REMOTE_ADDR'] = $clientInfo['remote_ip'];
-            $_SERVER['REQUEST_TIME'] = time();
-        } else {
-            /**
-             * @var \swoole_http_request $request
-             * ajax 跨域
-             */
-            $request = $context->request;
-            $this->setGlobal($request);
-        }
+        /**
+         * @var \swoole_http_request $request
+         * ajax 跨域
+         */
+        $request = $context->request;
+        $this->setGlobal($request);
         if (!empty($args[0]) ) {
             $args = $args[0];
             $this->parseArgs($args);
@@ -199,12 +190,12 @@ class main extends Hprose\Swoole\WebSocket\Server
         $GLOBALS['real'] = $name;
         $GLOBALS['hproseCall'] = true;
 
-
         $delimiter = strpos($name, '_');
         $class = 'App\Service\\'.strtolower(substr($name, 0, $delimiter));
         $method = strtolower(substr($name, $delimiter + 1));
-        $realCall = [$class, $method];
-        $context->method = $realCall;
+//        $realCall = [$class, $method];
+        $call = [$this, 'hproseProxy'];
+        $context->method = $call;       // 设置要执行的接口名，这里设置为统一入口hproseProxy中
     }
 
     public function setGlobal(\swoole_http_request $request)
@@ -231,7 +222,6 @@ class main extends Hprose\Swoole\WebSocket\Server
 
     private function parseArgs(&$args)
     {
-        Factory::logger('zhan')->addInfo(__FUNCTION__, [__LINE__, 'parseArgs']);
         if(!empty($args['cookie'])) {
             if(!empty($args['cookie']['userId'])) $_REQUEST['userId'] = $args['cookie']['userId'];      //用户id
             if(!empty($args['cookie']['token'])) $_REQUEST['token'] = $args['cookie']['token'];         //token
@@ -264,7 +254,6 @@ class main extends Hprose\Swoole\WebSocket\Server
     {
         $context = $GLOBALS['context'];
         $path = '/';
-        $result = '';
         /**
          * @var swoole_http_request $request
          */
@@ -285,7 +274,7 @@ class main extends Hprose\Swoole\WebSocket\Server
             $result = call_user_func_array([$this, 'hproseProxy'], $reqArg);
             if (!is_scalar($result)) $result = json_encode($result, JSON_UNESCAPED_UNICODE);
         } else {
-            //$result = parent::doFunctionList($context);    取消掉直接访问接口页面时的接口名显示
+            $result = parent::doFunctionList();
         }
         return $result;
     }

@@ -12,9 +12,12 @@ use Monolog\Handler\StreamHandler;
  */
 class Factory
 {
-    public static $server = null;   //服务器对象
-    public static $config = [];     //配置信息
-    public static $logger = [];     //日志对象
+    /**
+     * @var \main
+     */
+    private static $server = null;   //服务器对象
+    private static $config = [];     //配置信息
+    private static $logger = [];     //日志对象
 
     private static $objects = [];   // 实例对象数组
     private static $allowMultipleInstances = [];    // 允许多实例的对象
@@ -34,7 +37,8 @@ class Factory
      */
     public static function initConfig()
     {
-        if (false !== ($file = readdir(opendir(CONFPATH)))) {
+        $handle = opendir(CONFPATH);
+        while (false !== ($file = readdir($handle))) {
             if ($file != '.' && $file != '..') {
                 $configExt =explode('.', $file)[1];
                 if ($configExt == 'php') {

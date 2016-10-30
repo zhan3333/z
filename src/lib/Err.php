@@ -1,9 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * @author  carry
- * @date: 16-3-28 下午3:23
- */
 
 namespace App;
 

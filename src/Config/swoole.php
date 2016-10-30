@@ -7,7 +7,7 @@
 
 return [
     //监听的HOST
-    'host'   => '0.0.0.0',
+    'host'   => 'ws://0.0.0.0',
     //监听的端口
     'port'   => '2000',
     'debug' => 1,
@@ -16,9 +16,9 @@ return [
     'worker_num'      => 4,
     //不要修改这里
     'max_request'     => 0,
-    'task_worker_num' => 4,
+    'task_worker_num' => 0,
     'task_ipc_mode' => 3,
-    // 'dispatch_mode' => 3,
+    'dispatch_mode' => 3,
     'heartbeat_idle_time' => 600,
     'heartbeat_check_interval' => 60,
     //是否要作为守护进程

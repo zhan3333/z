@@ -1,23 +1,23 @@
 <?php
-/**
- * 启动入口文件
- * @package App
- * @author  carry
- * @date    2016/03/22 14:34
- */
 date_default_timezone_set('UTC');
 define('APP_PREFIX', 'z');
 define('APPTIMEZONE', '-8');        // 校正东8区
 define('WEBPATH', __DIR__);
 define('APPPATH', __DIR__);
-define('CONFPATH', APPPATH.'/src/Config');
+define('CONFPATH', __DIR__.'/src/Config/');
 define('ENVIRONMENT', 'DEVELOP');   // 生产环境定义
 define('DAILY_SECOND', 86400);
 require 'vendor/autoload.php';
-
 use App\Factory;
 use App\Err;
 
+if (is_dir(CONFPATH)) {
+    Factory::initConfig();
+    $swooleConfig = Factory::getConfig('swoole');
+} else {
+    echo '未找到配置文件夹: /src/Config';
+    exit();
+}
 
 /**
  * Class main
@@ -26,14 +26,37 @@ use App\Err;
  */
 class main extends Hprose\Swoole\WebSocket\Server
 {
+    private $host;
+    private $port;
+    private $configs;   // swoole配置信息
+    private $pidFile;   // pid保存文件名
+    public function __construct($configs)
+    {
+        $this->configs = $configs;
+        $this->host = empty($configs['host'])?'ws://0.0.0.0':$configs['host'];
+        $this->port = empty($configs['port'])?'8000':$configs['port'];
+        if (!empty($configs['pid_file'])) $this->setPidFile($configs['pid_file']);
+        $mode = empty($configs['dispatch_mode'])?SWOOLE_BASE:$configs['dispatch_mode'];
+        $uri = $this->host . ':' . $this->port;
+        parent::__construct($uri, $mode);
+        $this->set($configs);
+    }
+
+    /**
+     * 设置pid存储文件
+     * @param $pidFile
+     */
+    public function setPidFile($pidFile) {
+        $this->pidFile = $pidFile;
+    }
 
     public function workerStart(swoole_server $server, $worker_id)
     {
         if ($worker_id >= $server->setting['worker_num']) {
-            echo date('Y-m-d H:i:s'), ' Task ', $worker_id, ' Start', PHP_EOL;
+            echo ' Task ', $worker_id, ' Start', PHP_EOL;
             cli_set_process_title(APP_PREFIX.' task #'.$worker_id);
         } else {
-            echo date('Y-m-d H:i:s'), ' Worker ', $worker_id, ' Start', PHP_EOL;
+            echo ' Worker ' .  $worker_id .  ' Start', PHP_EOL;
             cli_set_process_title(APP_PREFIX.' worker #'.$worker_id);
             //进程0执行的操作
             if (0 == $worker_id) {
@@ -129,7 +152,19 @@ class main extends Hprose\Swoole\WebSocket\Server
     public function start()
     {
         $this->on('workerStart', [$this, 'workerStart']);
+        $this->on('start', [$this, 'swooleStart']);
+        $this->on('managerStart', [$this, 'managerStart']);
         parent::start();
+    }
+
+    public function swooleStart(swoole_server $server)
+    {
+        // 打印url与master_pid信息
+        echo APP_PREFIX . ' swoole start: ' . $this->host . ':' . $this->port
+            . ' , on time: '. date('Y-m-d H:i:s')
+            . ' , on pid: ' . $server->master_pid
+            . PHP_EOL;
+        cli_set_process_title(APP_PREFIX . ' root =>' . $this->host . ':' . $this->port);
     }
 
     /**
@@ -254,9 +289,32 @@ class main extends Hprose\Swoole\WebSocket\Server
         }
         return $result;
     }
+
+    /**
+     * 管理进程启动时调用
+     * @param swoole_server $server
+     */
+    public function managerStart(swoole_server $server)
+    {
+        echo 'manager start... '. PHP_EOL;
+        cli_set_process_title('z manager');
+        // 设置pid文件
+        if (!empty($this->pidFile)) {
+            file_put_contents($this->pidFile, $server->master_pid);
+        }
+    }
+
+    public function managerStop(swoole_server $server)
+    {
+        echo 'manager stop... '. PHP_EOL;
+        if (!empty($this->pidFile))
+        {
+            unlink($this->pidFile);
+        }
+    }
 }
 
-$server = new main('ws://0.0.0.0:2000');
+$server = new main($swooleConfig);
 $server->setErrorTypes(E_ALL);
 $server->setDebugEnabled();
 $server->start();

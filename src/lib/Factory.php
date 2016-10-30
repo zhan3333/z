@@ -16,6 +16,9 @@ class Factory
     public static $config = [];     //配置信息
     public static $logger = [];     //日志对象
 
+    private static $objects = [];   // 实例对象数组
+    private static $allowMultipleInstances = [];    // 允许多实例的对象
+
     public static function initServer($server)
     {
         self::$server = $server;
@@ -31,12 +34,12 @@ class Factory
      */
     public static function initConfig()
     {
-        if (false !== ($file = readdir(opendir(CONFIG_PATH)))) {
+        if (false !== ($file = readdir(opendir(CONFPATH)))) {
             if ($file != '.' && $file != '..') {
                 $configExt =explode('.', $file)[1];
                 if ($configExt == 'php') {
                     $configName = explode('.', $file)[0];
-                    self::$config[$configName] = require CONFIG_PATH . $file;
+                    self::$config[$configName] = require CONFPATH . $file;
                 }
             }
         }

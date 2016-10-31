@@ -1,10 +1,11 @@
 {
   "require": {
     "monolog/monolog": "*",
-    "doctrine/orm": "2.4.*",
+    "doctrine/orm": "dev-master",
     "hprose/hprose-swoole": "dev-master",
     "respect/validation": "*",
-    "phpmailer/phpmailer": "~5.2"
+    "phpmailer/phpmailer": "~5.2",
+    "PHPOffice/PHPExcel": "dev-master"
   },
   "autoload": {
     "psr-4" : {

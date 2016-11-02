@@ -21,6 +21,8 @@ class Factory
     private static $server = null;   //服务器对象
     private static $config = [];     //配置信息
     private static $logger = [];     //日志对象
+    private static $wechat = null;
+
 
     private static $objects = [];   // 实例对象数组
     private static $allowMultipleInstances = [];    // 允许多实例的对象
@@ -152,5 +154,30 @@ class Factory
             self::$logger[$name] = $log->pushHandler(new StreamHandler(WEBPATH . '/log/'.$name.'.log'));
             return self::$logger[$name];
         }
+    }
+
+    // 微信相关
+
+    /**
+     * 获取wechat对象
+     * @return Application
+     */
+    public static function wechat()
+    {
+        if (empty(self::$wechat)) {
+            $wechatConfig = Factory::getConfig('wechat', 'wechat');
+            self::$wechat = new Application($wechatConfig);
+        }
+        return self::$wechat;
+    }
+
+    /**
+     * 获取 Request 对象
+     * @return Request
+     */
+    public static function getRequestObj()
+    {
+        $request = new Request($_GET, $_POST, [], $_COOKIE, $_FILES, $_SERVER, $GLOBALS['php://input']);
+        return $request;
     }
 }

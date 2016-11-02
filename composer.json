@@ -5,7 +5,8 @@
     "hprose/hprose-swoole": "dev-master",
     "respect/validation": "*",
     "phpmailer/phpmailer": "~5.2",
-    "PHPOffice/PHPExcel": "dev-master"
+    "PHPOffice/PHPExcel": "dev-master",
+    "overtrue/wechat": "~3.1"
   },
   "autoload": {
     "psr-4" : {

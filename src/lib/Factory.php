@@ -2,10 +2,12 @@
 
 namespace App;
 
+use EasyWeChat\Foundation\Application;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Doctrine\ORM;
 use Doctrine\Common\Cache as OrmCache;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * 工厂类
@@ -21,6 +23,9 @@ class Factory
     private static $server = null;   //服务器对象
     private static $config = [];     //配置信息
     private static $logger = [];     //日志对象
+    /**
+     * @var Application
+     */
     private static $wechat = null;
 
 

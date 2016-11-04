@@ -11,12 +11,15 @@ namespace App\Service;
 
 use App\Err;
 use App\Factory;
-use App\Util;
 use EasyWeChat\Message\News;
 use EasyWeChat\Payment\Merchant;
 use EasyWeChat\Payment\Order;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Overtrue\Socialite\Providers\WeChatProvider;
 
-class Wechat extends Base
+
+
+class Wechat
 {
     // 微信消息相关操作
 

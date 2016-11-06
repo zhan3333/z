@@ -29,6 +29,7 @@ class Wechat
      */
     public static function response()
     {
+        if (!empty($_GET['echostr'])) return $_GET['echostr'];  // 用于验证服务器
         ob_start();
         $app = Factory::wechat();
         $server = $app->server;

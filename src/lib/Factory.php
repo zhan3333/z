@@ -182,7 +182,8 @@ class Factory
      */
     public static function getRequestObj()
     {
-        $request = new Request($_GET, $_POST, [], $_COOKIE, $_FILES, $_SERVER, $GLOBALS['php://input']);
+        $content = empty($GLOBALS['php://input'])?'':$GLOBALS['php://input'];
+        $request = new Request($_GET, $_POST, [], $_COOKIE, $_FILES, $_SERVER, $content);
         return $request;
     }
 }

@@ -9,6 +9,8 @@
 namespace App\Service;
 
 
+use App\Factory;
+
 class Tool
 {
     /**

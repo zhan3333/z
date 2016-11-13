@@ -12,5 +12,11 @@
  */
 class Student
 {
-
+    /**
+     * @Id
+     * @Column(type="integer")
+     * @GeneratedValue
+     * @var
+     */
+    protected $id;
 }

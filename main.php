@@ -209,7 +209,6 @@ class main extends Hprose\Swoole\WebSocket\Server
         //获取非urlencode-form表单的POST原始数据，现用于接收微信支付的回调结果
         if (!empty($request->rawContent())) {
             $GLOBALS['php://input'] = $request->rawContent();
-            $GLOBALS['HTTP_RAW_POST_DATA'] = $request->rawContent();        //微信支付返回数据 xml格式
         }
         $_REQUEST = array_merge($_GET, $_POST, $_COOKIE);
 

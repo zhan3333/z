@@ -77,12 +77,49 @@ class Test
     }
 
     /**
+     * 测试返回数据
      * @default enable
+     * @param string $a
+     * @return array
      */
-    public static function aaa()
+    public static function testReturn($a = '')
     {
+        $result = [
+            'string' => 'abcdef',
+            'int' => 123456,
+            'array' => [
+                1,
+                'a',
+                [2, 'b'],
+                ['c' => 1, 'd' => 2]
+            ],
+            'object' => [
+                'a' => [1, 2, 3, 4],
+                'b' => 'c'
+            ]
+        ];
+        if (!empty($a)) {
+            $result['a'] = $a;
+        }
         return [
-            'result' => 'aaaa'
+            'result' => $result
+        ];
+    }
+
+    /**
+     * @default enable
+     * @return array
+     */
+    public static function testRedis()
+    {
+        $redis = Factory::redis();
+        $size = $redis->dbSize();
+        $set = $redis->set('a', 1);
+        $get = $redis->get('a');
+        return [
+            'size' => $size,
+            'set' => $set,
+            'get' => $get
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Module\Cache\Redis;
 use EasyWeChat\Foundation\Application;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
@@ -27,11 +28,12 @@ class Factory
      * @var Application
      */
     private static $wechat = null;
-
+    // 模块所在空间
+    private static $modules = [
+        'redis' => 'Module\\Cache\\Redis'
+    ];       
 
     private static $objects = [];   // 实例对象数组
-    private static $allowMultipleInstances = [];    // 允许多实例的对象
-
 
     /**
      * 允许多实例的模块
@@ -70,17 +72,12 @@ class Factory
     protected static function loadModule($module, $key = 'master')
     {
         $objectId = $module;
-        if(isset(self::$multiInstance[$module]) ) $objectId .= '_' .$key;
+        if(isset(self::$multiInstance[$module]) ) $objectId .= '_' .$key;   // 模块命名
         if (empty(self::$objects[$objectId]) )
         {
-            $className = __NAMESPACE__ .'\\'.self::$modules[$module];
-            if(empty(self::$multiInstance[$module]) ) {
-                $moduleConfig = self::getConfig($module);
-            }
-            else {
-                $moduleConfig = self::getConfig($module, $key);
-            }
-            self::$objects[$objectId] = new $className($moduleConfig);
+            $className = __NAMESPACE__ .'\\'.self::$modules[$module];       // 获取模块路径
+            $moduleConfig = self::getConfig($module, $key);                 // 加载配置文件
+            self::$objects[$objectId] = new $className($moduleConfig);      // 创建对象
         }
         return self::$objects[$objectId];
     }
@@ -159,6 +156,16 @@ class Factory
             self::$logger[$name] = $log->pushHandler(new StreamHandler(WEBPATH . '/log/'.$name.'.log'));
             return self::$logger[$name];
         }
+    }
+
+    /**
+     * 加载redis模块
+     * @param string $key
+     * @return Redis
+     */
+    public static function redis($key = 'master')
+    {
+        return self::loadModule('redis', $key);
     }
 
     // 微信相关

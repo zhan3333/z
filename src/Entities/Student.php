@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Entities;
+
 /**
  * Created by PhpStorm.
  * User: zhan
@@ -7,7 +9,7 @@
  * Time: 10:24
  *
  * @Table(name = "Student")
- * @Entity(repositoryClass = "StudentRepository")
+ * @Entity(repositoryClass="StudentRepository")
  *
  */
 class Student

@@ -168,6 +168,32 @@ class Factory
         return self::loadModule('redis', $key);
     }
 
+    /**
+     * 获取EntityManager数据库操作对象
+     * @param string $module
+     * @param string $key
+     * @return ORM\EntityManager
+     * @throws ORM\ORMException
+     */
+    public static function em($module = 'db', $key = 'master')
+    {
+        $objectId = $module;
+        if(!empty(self::$multiInstance[$module]) ) $objectId .= '_' .$key;   // 模块命名
+        if (!empty(self::$objects[$objectId])) return self::$objects[$objectId];
+
+        $isDevMode = true;
+        $paths = [
+            __DIR__ . '/../Entities'
+        ];
+        $configObj = ORM\Tools\Setup::createAnnotationMetadataConfiguration($paths, $isDevMode);
+        $configObj->setEntityNamespaces(['' => "App\\Entities\\", 'e' => "App\\Entities\\"]);
+        $conn = self::getConfig($module, $key);
+        $em = ORM\EntityManager::create($conn, $configObj);
+
+        self::$objects[$objectId] = $em;
+        return $em;
+    }
+
     // 微信相关
 
     /**

@@ -9,6 +9,7 @@
 namespace App\Service;
 
 
+use App\Entities\Student;
 use App\Factory;
 use FilesystemIterator;
 
@@ -121,5 +122,28 @@ class Test
             'set' => $set,
             'get' => $get
         ];
+    }
+
+    /**
+     * 测试em数据库操作
+     */
+    public static function testEm()
+    {
+        new Student();
+        try {
+            $em = Factory::em();
+            $ret2 = $em->getRepository('e:Student')->createQueryBuilder('s')
+                ->getQuery()->getArrayResult();
+            $ret1 = $em->createQueryBuilder()->from('e:Student', 's')
+                ->select('s')->getQuery()->getArrayResult();
+            return [
+                'result2' => $ret2,
+                'result1' => $ret1
+            ];
+        } catch (\Exception $e) {
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $e
+            ]);
+        }
     }
 }

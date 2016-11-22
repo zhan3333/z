@@ -2,8 +2,11 @@
 // bootstrap.php
 use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
+use App\Factory;
 
 require_once "vendor/autoload.php";
+define('CONFPATH', __DIR__.'/src/Config/');
+define('APPPATH', __DIR__);
 
 // Create a simple "default" Doctrine ORM configuration for Annotations
 $isDevMode = true;
@@ -16,12 +19,8 @@ $config = Setup::createAnnotationMetadataConfiguration($paths, $isDevMode);
 //$config = Setup::createYAMLMetadataConfiguration(array(__DIR__."/config/yaml"), $isDevMode);
 
 // database configuration parameters
-$conn = [
-    'driver' => 'pdo_mysql',
-    'user' => 'root',
-    'password' => 'Z283779377g',
-    'dbname' => 'z'
-];
-
+Factory::initConfig();
+$conn = Factory::getConfig('db', 'master');
+if (empty($conn)) exit('读取数据库配置文件失败');
 // obtaining the entity manager
 $entityManager = EntityManager::create($conn, $config);

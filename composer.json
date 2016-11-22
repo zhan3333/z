@@ -1,13 +1,14 @@
 {
   "require": {
-    "monolog/monolog": "*",
-    "doctrine/orm": "dev-master",
-    "hprose/hprose-swoole": "dev-master",
-    "respect/validation": "*",
-    "phpmailer/phpmailer": "~5.2",
-    "PHPOffice/PHPExcel": "dev-master",
-    "overtrue/wechat": "~3.1",
-    "fzaninotto/faker":"dev-master"
+    "monolog/monolog": "1.21.0",
+    "doctrine/orm": "2.5.5",
+    "hprose/hprose-swoole": "2.0.7",
+    "respect/validation": "1.1.9",
+    "phpmailer/phpmailer": "5.2.16",
+    "PHPOffice/PHPExcel": "1.8.1",
+    "overtrue/wechat": "3.1.7",
+    "fzaninotto/faker":"1.6.0",
+    "facile-it/doctrine-mysql-come-back": "1.6.3"
   },
   "autoload": {
     "psr-4" : {

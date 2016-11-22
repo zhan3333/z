@@ -7,12 +7,17 @@
  */
 $master = [
     'driver' => 'mysqli',
-    'user' => '',
-    'password' => '',
+    'user' => 'duobao',
+    'password' => 'duobao',
     'dbname' => 'z',
     'host' => '127.0.0.1',
     'charset' => 'utf8',
-
+    // [doctrine-mysql-come-back] settings
+    'wrapperClass' => 'Facile\DoctrineMySQLComeBack\Doctrine\DBAL\Connection',
+    'driverClass' => 'Facile\DoctrineMySQLComeBack\Doctrine\DBAL\Driver\PDOMySql\Driver',
+    'driverOptions' => [
+        'x_reconnect_attempts' => 3
+    ]
 ];
 return [
     'master' => $master

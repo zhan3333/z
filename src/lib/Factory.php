@@ -3,12 +3,18 @@
 namespace App;
 
 use App\Module\Cache\Redis;
+
 use EasyWeChat\Foundation\Application;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Doctrine\ORM;
 use Doctrine\Common\Cache as OrmCache;
 use Symfony\Component\HttpFoundation\Request;
+
+use Doctrine\MongoDB\Connection;
+use Doctrine\ODM\MongoDB\Configuration;
+use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
 
 /**
  * 工厂类
@@ -192,6 +198,27 @@ class Factory
 
         self::$objects[$objectId] = $em;
         return $em;
+    }
+
+    public static function dm($module = 'mongodb', $key = 'master')
+    {
+        $objectId = $module;
+        if(!empty(self::$multiInstance[$module]) ) $objectId .= '_' .$key;   // 模块命名
+        if (!empty(self::$objects[$objectId])) return self::$objects[$objectId];
+
+        AnnotationDriver::registerAnnotationClasses();
+
+        $config = new Configuration();
+        $config->setProxyDir(APPPATH . '/src/Proxies');
+        $config->setProxyNamespace('App\\Proxies');
+        $config->setDocumentNamespaces(['' => 'App\\Documents']);
+        $config->setHydratorDir(APPPATH . '/src/Hydrators');
+        $config->setHydratorNamespace('App\\Hydrators');
+        $config->setDefaultDB('doctrine_odm');
+        $config->setMetadataDriverImpl(AnnotationDriver::create([APPPATH . '/src/Documents']));
+        $dm = DocumentManager::create(new Connection(), $config);
+        self::$objects[$objectId] = $dm;
+        return $dm;
     }
 
     // 微信相关

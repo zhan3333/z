@@ -9,6 +9,8 @@
 namespace App\Service;
 
 
+use App\Documents\BlogPost;
+use App\Documents\User;
 use App\Entities\Student;
 use App\Factory;
 use FilesystemIterator;
@@ -129,12 +131,11 @@ class Test
      */
     public static function testEm()
     {
-        new Student();
         try {
             $em = Factory::em();
-            $ret2 = $em->getRepository('e:Student')->createQueryBuilder('s')
+            $ret2 = $em->getRepository(':Student')->createQueryBuilder('s')
                 ->getQuery()->getArrayResult();
-            $ret1 = $em->createQueryBuilder()->from('e:Student', 's')
+            $ret1 = $em->createQueryBuilder()->from(':Student', 's')
                 ->select('s')->getQuery()->getArrayResult();
             return [
                 'result2' => $ret2,
@@ -144,6 +145,32 @@ class Test
             Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
                 $e
             ]);
+        }
+    }
+
+    /**
+     * 测试dm数据库
+     */
+    public static function testDm()
+    {
+        try {
+            $dm = Factory::dm();
+            $user = new User();
+            $user->setName('zhan');
+            $user->setEmail('390961827@qq.com');
+            $dm->persist($user);
+
+            $post = new BlogPost();
+            $post->setTitle('标题');
+            $post->setBody('内容');
+            $post->setCreatedAt(new \DateTime());
+            $user->addPost($post);
+            $dm->flush();
+        } catch (\Exception $e) {
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $e
+            ]);
+
         }
     }
 }

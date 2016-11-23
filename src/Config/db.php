@@ -6,7 +6,7 @@
  * Time: 12:14
  */
 $master = [
-    'driver' => 'mysqli',
+    'driver' => 'pdo_mysql',
     'user' => 'duobao',
     'password' => 'duobao',
     'dbname' => 'z',

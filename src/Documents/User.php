@@ -8,8 +8,48 @@
 
 namespace App\Documents;
 
-
+/**
+ * Class User
+ * @package App\Documents
+ *
+ * @Document
+ *
+ */
 class User
 {
+    /**
+     * @Id
+     * @var
+     */
+    private $id;
 
+    /**
+     * @String
+     */
+    private $name;
+
+    /**
+     * @String
+     */
+    private $email;
+
+    /**
+     * @ReferenceMany(targetDocument="BlogPost", cascade="all")
+     */
+    private $posts = array();
+
+    public function setName($value)
+    {
+        $this->name = $value;
+    }
+
+    public function setEmail($value)
+    {
+        $this->email = $value;
+    }
+
+    public function setPosts($value)
+    {
+        $this->posts = $value;
+    }
 }

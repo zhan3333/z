@@ -15,11 +15,22 @@ use Doctrine\ORM\EntityRepository;
 
 class UserRepository extends EntityRepository
 {
+    /**
+     * @param $data
+     * <pre>
+     * [
+     *  'userType' => 0,        // 用户类型
+     * ]
+     * </pre>
+     * @return bool
+     */
     public static function addUser($data)
     {
+        if (empty($data['userType'])) $data['userType'] = User::USER_TYPE_NORMAL;   // 默认为普通用户
         $em = Factory::em();
         $User = new User();
         $User->setPostTime(date_create());
+        $User->setUserType($data['userType']);
         $em->persist($User);
         $em->flush();
         return $User->getId();
@@ -69,5 +80,46 @@ class UserRepository extends EntityRepository
                 'code' => $e->getCode()
             ];
         }
+    }
+
+    /**
+     * 获取用户的类型
+     * @param $userId
+     */
+    public static function getUserTypeByUserId($userId)
+    {
+        /** @var User $User*/
+        $User = RepositoryClass::User()->find($userId);
+        return $User->getUserType();
+    }
+
+    /**
+     * 判断用户是否为管理员
+     * @param $userId
+     * @return bool
+     */
+    public static function isAdmin($userId)
+    {
+        return (self::getUserTypeByUserId($userId) == User::USER_TYPE_ADMIN)?true:false;
+    }
+
+    /**
+     * 判断用户是否为普通用户
+     * @param $userId
+     * @return bool
+     */
+    public static function isNormal($userId)
+    {
+        return (self::getUserTypeByUserId($userId) == User::USER_TYPE_NORMAL)?true:false;
+    }
+
+    /**
+     * 判断用户是否为超级管理员
+     * @param $userId
+     * @return bool
+     */
+    public static function isSuperAdmin($userId)
+    {
+        return (self::getUserTypeByUserId($userId) == User::USER_TYPE_SUPER_ADMIN)?true:false;
     }
 }

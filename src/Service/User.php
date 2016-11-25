@@ -35,6 +35,10 @@ class User extends Base
      */
     public static function normalLogin($account, $passwd)
     {
+        $account = filter_var($account, FILTER_SANITIZE_STRING);
+        $passwd = filter_var($passwd, FILTER_SANITIZE_STRING);
+        if (empty($account)) return Err::setLastErr(E_USER_ACCOUNT_ERROR);
+        if (empty($passwd)) return Err::setLastErr(E_USER_PASSWD_ERROR);
         $userId = RepositoryClass::NormalAccount()->normalAccount2UserId($account);
         if (empty($userId)) return Err::setLastErr(E_USER_NOT_EXIST);   // 用户不存在
         $token = self::login($userId, $passwd);
@@ -60,6 +64,10 @@ class User extends Base
      */
     public static function normalReg($account, $passwd, $ext = [])
     {
+        $account = filter_var($account, FILTER_SANITIZE_STRING);
+        $passwd = filter_var($passwd, FILTER_SANITIZE_STRING);
+        if (empty($account)) return Err::setLastErr(E_USER_ACCOUNT_ERROR);
+        if (empty($passwd)) return Err::setLastErr(E_USER_PASSWD_ERROR);
         $hashPasswd = Util::createPasswd($passwd);
         $addNormalAccountRet = RepositoryClass::User()->normalReg($account, $hashPasswd);
         if ($addNormalAccountRet['ok']) {

@@ -10,6 +10,7 @@ namespace App\Service;
 
 
 use App\Factory;
+use App\RepositoryClass;
 use App\Util;
 
 class UserBase
@@ -68,5 +69,38 @@ class UserBase
             return $_SERVER['HTTP_X_REAL_IP'];
         }
         return $ip;
+    }
+
+    /**
+     * 判断登陆用户是否为管理员
+     * @return bool
+     */
+    public static function isAdmin()
+    {
+        $userId = self::getClientUserId();
+        if (empty($userId)) return false;
+        return RepositoryClass::User()->isAdmin($userId);
+    }
+
+    /**
+     * 判断登陆用户是否为普通用户
+     * @return bool
+     */
+    public static function isNormal()
+    {
+        $userId = self::getClientUserId();
+        if (empty($userId)) return false;
+        return RepositoryClass::User()->isNormal($userId);
+    }
+
+    /**
+     * 判断登陆用户是否为超级管理员
+     * @return bool
+     */
+    public static function isSuperAdmin()
+    {
+        $userId = self::getClientUserId();
+        if (empty($userId)) return false;
+        return RepositoryClass::User()->isSuperAdmin($userId);
     }
 }

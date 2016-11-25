@@ -18,6 +18,10 @@ namespace App\Entities;
  */
 class User
 {
+    const USER_TYPE_NORMAL = 1;         // 普通用户
+    const USER_TYPE_ADMIN = 2;          // 管理员
+    const USER_TYPE_SUPER_ADMIN = 3;    // 超级管理员
+
     /**
      * @Id
      * @GeneratedValue
@@ -25,6 +29,12 @@ class User
      * @var
      */
     protected $id;
+
+    /**
+     * @Column(type = "integer", nullable = true, options={"comment": "用户类型"})
+     * @var
+     */
+    protected $userType;
 
     /**
      * @Column(type="datetimetz")
@@ -35,6 +45,16 @@ class User
     public function setPostTime($postTime)
     {
         $this->postTime = $postTime;
+    }
+
+    public function setUserType($userType)
+    {
+        $this->userType = $userType;
+    }
+
+    public function getUserType()
+    {
+        return $this->userType;
     }
 
     public function getPostTime()

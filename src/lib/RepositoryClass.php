@@ -7,6 +7,9 @@
  */
 
 namespace App;
+use App\Entities\ApiAccount;
+use App\Entities\ApiAccountRepository;
+use App\Entities\ApiInfoRepository;
 use App\Entities\NormalAccountRepository;
 use App\Entities\UserRepository;
 
@@ -31,5 +34,21 @@ class RepositoryClass
     public static function NormalAccount()
     {
         return Factory::em()->getRepository(':NormalAccount');
+    }
+
+    /**
+     * @return ApiAccountRepository
+     */
+    public static function ApiAccount()
+    {
+        return Factory::em()->getRepository(':ApiAccount');
+    }
+
+    /**
+     * @return ApiInfoRepository
+     */
+    public static function ApiInfo()
+    {
+        return Factory::em()->getRepository(':ApiInfo');
     }
 }

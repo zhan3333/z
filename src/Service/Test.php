@@ -14,6 +14,7 @@ use App\Documents\User;
 use App\Entities\Student;
 use App\Factory;
 use App\RepositoryClass;
+use App\Util;
 use FilesystemIterator;
 
 class Test
@@ -150,32 +151,6 @@ class Test
     }
 
     /**
-     * 测试dm数据库
-     */
-    public static function testDm()
-    {
-        try {
-            $dm = Factory::dm();
-            $user = new User();
-            $user->setName('zhan');
-            $user->setEmail('390961827@qq.com');
-            $dm->persist($user);
-
-            $post = new BlogPost();
-            $post->setTitle('标题');
-            $post->setBody('内容');
-            $post->setCreatedAt(new \DateTime());
-            $user->addPost($post);
-            $dm->flush();
-        } catch (\Exception $e) {
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $e
-            ]);
-
-        }
-    }
-
-    /**
      * @param string $normalAccount
      * @return int
      */
@@ -183,5 +158,26 @@ class Test
     {
         $userId = RepositoryClass::NormalAccount()->normalAccount2UserId($normalAccount);
         return $userId;
+    }
+
+    public static function testRandom($len, $ext = [])
+    {
+        return Util::random($len, $ext);
+    }
+
+    /**
+     * @param $where
+     * @param $orderBy
+     * @param $length
+     * @param $first
+     * @return array
+     */
+    public static function testGetTable($where, $orderBy, $length, $first)
+    {
+        $filter = 0;
+        $result = RepositoryClass::ApiInfo()->getApiInfoList($filter, $where, $orderBy, $length, $first);
+        return [
+            'result' => $result
+        ];
     }
 }

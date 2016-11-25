@@ -13,7 +13,7 @@ namespace App\Entities;
  * Class NormalAccount
  * @package App\Entities
  * @Table(name="NormalAccount")
- * @Entity(repositoryClass = "NormalAccount")
+ * @Entity(repositoryClass = "NormalAccountRepository")
  */
 class NormalAccount
 {
@@ -38,8 +38,52 @@ class NormalAccount
     protected $login;
 
     /**
+     * @Column(type="string", options = {"comment": "用户密码"})
+     * @var
+     */
+    protected $passwd;
+
+    /**
      * @Column(type="datetimetz")
      * @var
      */
     protected $postTime;
+
+    public function setUserId($userId)
+    {
+        $this->userId = $userId;
+    }
+
+    public function setLogin($login)
+    {
+        $this->login = $login;
+    }
+
+    public function setPasswd($passwd)
+    {
+        $this->passwd = $passwd;
+    }
+
+    public function setPostTime($postTime)
+    {
+        $this->postTime = $postTime;
+    }
+
+    public function getId()
+    {
+        if (empty($this->id)) {
+            return false;
+        }
+        return $this->id;
+    }
+
+    public function getUserId()
+    {
+        return $this->userId;
+    }
+
+    public function getLogin()
+    {
+        return $this->login;
+    }
 }

@@ -31,4 +31,23 @@ class User
      * @var
      */
     protected $postTime;
+
+    public function setPostTime($postTime)
+    {
+        $this->postTime = $postTime;
+    }
+
+    public function getPostTime()
+    {
+        return $this->postTime;
+    }
+
+    public function getId()
+    {
+        if (!empty($this->id)) {
+            return $this->id;
+        } else {
+            return false;
+        }
+    }
 }

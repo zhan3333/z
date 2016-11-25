@@ -9,6 +9,14 @@ const E_NO_FILE_UPLOAD = 1006;
 const E_DIR_NOT_AIR = 1007;
 const E_NOT_IS_FILE = 1008;
 
+// User相关错误 2000~3000
+const E_USER_CREATE_FAIL = 2000;
+const E_USER_ID_NOT_ALLOW_AIR = 2001;
+const E_USER_ACCOUNT_NOT_ALLOW_AIR = 2002;
+const E_USER_PASSWD_NOT_ALLOW_AIR = 2003;
+const E_USER_CREATE_NORMAL_ACCOUNT_FAIL = 2004;
+const E_USER_NOT_EXIST = 2005;
+
 $err = [
     0 => '执行成功',
 
@@ -21,6 +29,14 @@ $err = [
     E_NO_ACCESS => '禁止访问',
     E_NO_FILE_UPLOAD => '无文件上传',
     E_DIR_NOT_AIR => '文件夹不为空，无法删除',
-    E_NOT_IS_FILE => '非文件'
+    E_NOT_IS_FILE => '非文件',
+
+    // User相关错误 2000~3000
+    E_USER_CREATE_FAIL => '创建用户失败',
+    E_USER_ID_NOT_ALLOW_AIR => '用户id不允许为空',
+    E_USER_ACCOUNT_NOT_ALLOW_AIR => '用户账号不允许为空',
+    E_USER_PASSWD_NOT_ALLOW_AIR => '用户密码不允许为空',
+    E_USER_CREATE_NORMAL_ACCOUNT_FAIL => '创建用户普通账号失败',
+    E_USER_NOT_EXIST => '用户不存在',
 ];
 return $err;

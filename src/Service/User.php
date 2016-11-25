@@ -7,6 +7,10 @@
  */
 
 namespace App\Service;
+use App\Err;
+use App\Factory;
+use App\RepositoryClass;
+use App\Util;
 
 /**
  * 用户类，用于提供用户操作接口
@@ -16,34 +20,69 @@ namespace App\Service;
 class User extends Base
 {
     /**
-     * 统一登陆入口
-     * @param $userId       integer     用户唯一标识
-     * @param $passwd       string      用户登陆凭据
-     * @param array $ext                登陆额外信息（登陆ip，登陆时间，登陆方式...）
-     */
-    private static function login($userId, $passwd, $ext = [])
-    {
-
-    }
-
-    /**
      * 普通账号登陆
-     * @param $account      string  账号
-     * @param $passwd       string  密码
+     * @param string $account        账号
+     * @param string $passwd         密码
+     * @return array
+     * <pre>
+     * [
+     *  'once' => [
+     *      'userId'    => 19,      // usreId
+     *      'token'     => '',      // token
+     *  ]
+     * ]
+     * </pre>
      */
     public static function normalLogin($account, $passwd)
     {
-
+        $userId = RepositoryClass::NormalAccount()->normalAccount2UserId($account);
+        if (empty($userId)) return Err::setLastErr(E_USER_NOT_EXIST);   // 用户不存在
+        $token = self::login($userId, $passwd);
+        return [
+            'once' => [
+                'userId' => $userId,
+                'token' => $token
+            ]
+        ];
     }
 
     /**
      * 普通账号注册
-     * @param $account  string  账号
-     * @param $passwd   string  密码
-     * @param array $ext        额外注册信息
+     * @param string $account    账号
+     * @param string $passwd     密码
+     * @param array $ext 额外注册信息
+     * @return array
+     * <pre>
+     * [
+     *  // 注册成功，code为0
+     * ]
+     * </pre>
      */
     public static function normalReg($account, $passwd, $ext = [])
     {
+        $hashPasswd = Util::createPasswd($passwd);
+        $addNormalAccountRet = RepositoryClass::User()->normalReg($account, $hashPasswd);
+        if ($addNormalAccountRet['ok']) {
+            return [];
+        } else {
+            return Err::setLastErr($addNormalAccountRet['code']);
+        }
+    }
 
+    /**
+     * 判断是否为登陆状态
+     * @return array
+     * <pre>
+     * [
+     *  'isLogin' => true   // 是否登陆成功
+     * ]
+     * </pre>
+     */
+    public static function isLogin()
+    {
+        $userId = self::getClientUserId();
+        return [
+            'isLogin' => $userId?true:false
+        ];
     }
 }

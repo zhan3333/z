@@ -13,6 +13,7 @@ use App\Documents\BlogPost;
 use App\Documents\User;
 use App\Entities\Student;
 use App\Factory;
+use App\RepositoryClass;
 use FilesystemIterator;
 
 class Test
@@ -172,5 +173,15 @@ class Test
             ]);
 
         }
+    }
+
+    /**
+     * @param string $normalAccount
+     * @return int
+     */
+    public static function testNormalAccount2UserId($normalAccount)
+    {
+        $userId = RepositoryClass::NormalAccount()->normalAccount2UserId($normalAccount);
+        return $userId;
     }
 }

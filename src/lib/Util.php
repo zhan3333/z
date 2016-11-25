@@ -6,7 +6,7 @@
  * Time: 18:31
  */
 
-namespace App\lib;
+namespace App;
 
 
 class Util

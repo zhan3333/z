@@ -45,8 +45,13 @@ class ApiInfoRepository extends EntityRepository
      */
     public static function getApiInfoById($id)
     {
-        $ApiInfo = RepositoryClass::ApiInfo()->find($id);
-        return $ApiInfo;
+        $qb = RepositoryClass::ApiInfo()->createQueryBuilder('s');
+        $result = $qb->select('s')
+            ->where('s.id =:id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+        return $result;
     }
 
     /**
@@ -61,6 +66,7 @@ class ApiInfoRepository extends EntityRepository
     }
 
     /**
+     * 获取api列表
      * @param $filter
      * @param $where
      * @param $orderBy
@@ -75,36 +81,23 @@ class ApiInfoRepository extends EntityRepository
      * @param $length
      * @param $first
      * @return array
+     *  $where = [], $orderBy = [], $length = 0, $first = 0
      */
-    public static function getApiInfoList(&$filter, $where, $orderBy, $length, $first)
+    public static function getApiInfoList(&$filter, $where = [], $orderBy = [], $first = 0,  $length = 0)
     {
-        $qb = RepositoryClass::ApiInfo()->createQueryBuilder('s');
-        $className = RepositoryClass::ApiInfo()->getClassName();
-        // where
-        foreach ($where as $key => $value) {
-            if (!property_exists($className, $key)) continue;
-            $qb->andWhere('s.'.$key . '=:'.$key);
-            $qb->setParameter($key, $value);
-        }
-        // filter
-        $filter = $qb->select("COUNT(s.id)")->getQuery()->getSingleScalarResult();
-
-        // length first
-        $qb->setMaxResults($length)->setFirstResult($first);
-
-        // orderBy
-        foreach ($orderBy as $item) {
-            if (empty($item['value']) || empty($item['order'])) continue;
-            $value = $item['value'];
-            $order = $item['order'];
-            if (!property_exists($className, $value)) continue;
-            if (array_search(strtoupper($order), ['ASC', 'DESC']) === false) continue;
-            $qb->addOrderBy('s.' . $item['value'], $item['order']);
-        }
-
-        $qb->select('s');
-
-        $result = $qb->getQuery()->getArrayResult();
-        return $result;
+        return ApiInfo::getList($filter, $where, $orderBy, $first,  $length);
     }
+
+    /**
+     * 更新数据库数据
+     * @param array $where      修改限定条件
+     * @param array $data       修改数据键值对
+     * @return bool             返回是否修改成功
+     */
+    public static function updateApiInfo($where, $data)
+    {
+        return ApiInfo::update($where, $data);
+
+    }
+
 }

@@ -53,7 +53,7 @@ class Test
 
                     $authMatches = [];
 
-                    preg_match('/@default\s+(enable|disable|)/i',$methodDoc, $authMatches);
+                    preg_match('/@default\s+(enable|disable|)/i', $methodDoc, $authMatches);
                     if(!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]) ) ) continue;
 
                     $methodData = &$classData[$methodInfo->name];

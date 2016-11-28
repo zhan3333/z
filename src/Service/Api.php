@@ -8,6 +8,7 @@
 
 namespace App\Service;
 use App\Err;
+use App\Factory;
 use App\RepositoryClass;
 use App\Util;
 
@@ -79,8 +80,51 @@ class Api extends Base
         return [];
     }
 
-    public static function getApiInfoTable($opt = [])
+    /**
+     * 获取api信息列表
+     * @param array $where
+     * @param array $orderBy
+     * @param int $first
+     * @param int $length
+     * @return array
+     */
+    public static function getApiInfoTable($where = [], $orderBy = [], $first = 0, $length = 0)
     {
+        $filter = 0;
+        $result = RepositoryClass::ApiInfo()->getApiInfoList($filter, $where, $orderBy, $first, $length);
+        return [
+            'table' => [
+                'data' => $result,
+                'filter' => $filter
+            ]
+        ];
+    }
 
+    /**
+     * 根据id，获取一条api信息
+     * @param $id
+     * @return array
+     */
+    public static function getApiInfoById($id)
+    {
+        $ar = RepositoryClass::ApiInfo();
+        $result = $ar->getApiInfoById($id);
+        return [
+            'result' => $result
+        ];
+    }
+
+    /**
+     * @param $id
+     * @param $data
+     * @return array
+     */
+    public static function updateApiInfo($id, $data)
+    {
+        $ar = RepositoryClass::ApiInfo();
+        $result = $ar->updateApiInfo(['id' => $id], $data);
+        return [
+            'result' => $result
+        ];
     }
 }

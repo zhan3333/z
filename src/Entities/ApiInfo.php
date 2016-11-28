@@ -7,6 +7,8 @@
  */
 
 namespace App\Entities;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\Entity;
 
 /**
  * 记录提供的api接口信息
@@ -15,7 +17,7 @@ namespace App\Entities;
  * @Table(name = "ApiInfo")
  * @Entity(repositoryClass = "ApiInfoRepository")
  */
-class ApiInfo
+class ApiInfo extends BaseEntity
 {
     /**
      * @Id

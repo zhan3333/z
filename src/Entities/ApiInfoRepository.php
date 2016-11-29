@@ -41,27 +41,27 @@ class ApiInfoRepository extends EntityRepository
     /**
      * 根据id查询apiInfo数据
      * @param $id
+     * @param array $shows
+     * @param array $hides
      * @return null|object
+     * @throws \Exception
      */
-    public static function getApiInfoById($id)
+    public static function getApiInfoById($id, $shows = [], $hides = [])
     {
-        $qb = RepositoryClass::ApiInfo()->createQueryBuilder('s');
-        $result = $qb->select('s')
-            ->where('s.id =:id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $result = ApiInfo::find($id, $shows, $hides);
         return $result;
     }
 
     /**
      * 根据api名称查询apiInfo数据
      * @param $apiName
+     * @param array $shows
+     * @param array $hides
      * @return null|object
      */
-    public static function apiName2ApiInfo($apiName)
+    public static function apiName2ApiInfo($apiName, $shows = [], $hides = [])
     {
-        $ApiInfo = RepositoryClass::ApiInfo()->findOneBy(['apiName' => $apiName]);
+        $ApiInfo = ApiInfo::get(['apiName' => $apiName], $shows, $hides, true);
         return $ApiInfo;
     }
 
@@ -97,7 +97,6 @@ class ApiInfoRepository extends EntityRepository
     public static function updateApiInfo($where, $data)
     {
         return ApiInfo::update($where, $data);
-
     }
 
 }

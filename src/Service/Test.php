@@ -11,6 +11,7 @@ namespace App\Service;
 
 use App\Documents\BlogPost;
 use App\Documents\User;
+use App\Entities\ApiInfo;
 use App\Entities\Student;
 use App\Factory;
 use App\RepositoryClass;
@@ -179,5 +180,109 @@ class Test
         return [
             'result' => $result
         ];
+    }
+
+    public static function testGet($where, $shows = [], $hides = [])
+    {
+        $result = ApiInfo::get($where, $shows, $hides);
+        return [
+            'result' => $result
+        ];
+    }
+
+    public static function testGetById($value, $shows = [], $hides = [])
+    {
+        $result = ApiInfo::getById($value, $shows, $hides);
+        return [
+            'result' => $result
+        ];
+    }
+
+    public static function testArrayShift()
+    {
+        $arr = ['id'];
+        $result = array_shift($arr);
+        return [
+            'result' => $result
+        ];
+    }
+
+    public static function testDelete($id)
+    {
+        $result = ApiInfo::deleteById($id);
+        return [
+            'result' => $result
+        ];
+    }
+
+    public static function testTime()
+    {
+        $amount = 1;
+        $a = 'test';
+        $b = ' time';
+        $ret = '';
+        $time1 = microtime(true);
+        // 直接点运算符
+        for($i = 0; $i < $amount; $i ++) {
+            $ret = $a . $b;
+        }
+        $time2 = microtime(true);
+        // 双引号解析
+        for($i = 0; $i < $amount; $i ++) {
+            $ret = "$a$b";
+        }
+        $time3 = microtime(true);
+        // 双引号加花括号分别括起
+        for($i = 0; $i < $amount; $i ++) {
+            $ret = "{$a}{$b}";
+        }
+        $time4 = microtime(true);
+        // 直接赋值:单引号
+        for($i = 0; $i < $amount; $i ++) {
+            $ret = 'test time';
+        }
+        $time5 = microtime(true);
+        // 直接赋值：双引号
+        for($i = 0; $i < $amount; $i ++) {
+            $ret = "test time";
+        }
+        $time6 = microtime(true);
+        $retArr = [
+            '$ret = $a . $b' => $time2 - $time1,
+            '$ret = "$a$b"' => $time3 - $time2,
+            ' $ret = "{$a}{$b}"' => $time4 - $time3,
+            '$ret = \'test time\'' => $time5 - $time4,
+            '$ret = "test time"' => $time6 - $time5
+        ];
+        array_multisort($retArr);
+        return [
+            'result' => $retArr
+        ];
+    }
+
+    public static function testResetDQLParts()
+    {
+        try {
+            $qb = RepositoryClass::ApiInfo()->createQueryBuilder('s');
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $qb->getQuery()->getSQL()
+            ]);
+
+            $qb->where('s.id =:id')->setParameter('id', 11);
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $qb->getQuery()->getSQL()
+            ]);
+            $qb->getQuery()->getArrayResult();
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $qb->getQuery()->getSQL()
+            ]);
+            $qb->resetDQLParts();
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $qb->getQuery()->getSQL()
+            ]);
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
+        }
+
     }
 }

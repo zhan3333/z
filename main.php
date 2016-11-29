@@ -52,13 +52,15 @@ class main extends Hprose\Swoole\WebSocket\Server
 
     public function workerStart(swoole_server $server, $worker_id)
     {
+        Err::init();
+        Factory::initServer($server);
+        Factory::initConfig();
         if ($worker_id >= $server->setting['worker_num']) {
             echo ' Task ', $worker_id, ' Start', PHP_EOL;
             cli_set_process_title(APP_PREFIX.' task #'.$worker_id);
         } else {
             echo ' Worker ' .  $worker_id .  ' Start', PHP_EOL;
             cli_set_process_title(APP_PREFIX.' worker #'.$worker_id);
-            Err::init();
             //进程0执行的操作
             if (0 == $worker_id) {
 

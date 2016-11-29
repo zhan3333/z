@@ -25,7 +25,7 @@ use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
 class Factory
 {
     /**
-     * @var \main
+     * @var \swoole_server
      */
     private static $server = null;   //服务器对象
     private static $config = [];     //配置信息
@@ -107,11 +107,17 @@ class Factory
         return self::$objects[$objectId];
     }
 
+    /**
+     * @param \swoole_server $server
+     */
     public static function initServer($server)
     {
         self::$server = $server;
     }
 
+    /**
+     * @return \swoole_server
+     */
     public static function swoole()
     {
         return self::$server;

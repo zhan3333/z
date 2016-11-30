@@ -343,7 +343,6 @@ class BaseEntity
             // where
             foreach ($where as $key => $value) {
                 if (!property_exists($className, $key)) continue;
-                $qb->andWhere("$abbr.$key = :$key");
                 self::parseWhere($qb, $key, $value, self::getFieldType($key, $className));
             }
             // data
@@ -386,7 +385,6 @@ class BaseEntity
         // where
         foreach ($where as $key => $value) {
             if (!property_exists($className, $key)) continue;
-            $qb->andWhere("$abbr.$key = :$key");
             self::parseWhere($qb, $key, $value, self::getFieldType($key, $className));
         }
         // shows
@@ -550,7 +548,6 @@ class BaseEntity
         }
         if (empty($where)) throw new \Exception('where invalid condition!');
         foreach ($filterWhere as $key => $value) {
-            $qb->andWhere("$abbr.$key = :$key");
             self::parseWhere($qb, $key, $value, self::getFieldType($key, $className));
         }
         $result = $qb->getQuery()->execute();

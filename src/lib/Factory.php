@@ -5,6 +5,8 @@ namespace App;
 use App\Module\Cache\Redis;
 
 use EasyWeChat\Foundation\Application;
+use GeoIp2\Database\Reader;
+use Jenssegers\Agent\Agent;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Doctrine\ORM;
@@ -275,13 +277,17 @@ class Factory
     // geoIp，解析ip地址对象
 
     /**
+     * ip解析对象
      * @param string $local
      * @return Reader
+     * @throws \Exception
      */
     public static function geoIp($local = 'zh-CN')
     {
         $objectId = __FUNCTION__ . '.' . $local;
         if (empty(self::$objects[$objectId])) {
+            $dbPath = self::getConfig('app', 'geoIpDatabasesPath');
+            if (!file_exists($dbPath)) throw new \Exception('geoIpDatabasesPath 对应文件不存在');
             $geoIp = new Reader(self::getConfig('app', 'geoIpDatabasesPath'));
             self::$objects[$objectId] = $geoIp;
         }

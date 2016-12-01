@@ -1,7 +1,7 @@
 <?php
 date_default_timezone_set('UTC');
 define('APP_PREFIX', 'z');
-define('APPTIMEZONE', '-8');        // 校正东8区
+define('APPTIMEZONE', '+8');        // 校正东8区
 define('WEBPATH', __DIR__);
 define('APPPATH', __DIR__);
 define('CONFPATH', __DIR__.'/src/Config/');
@@ -82,6 +82,10 @@ class main extends Hprose\Swoole\WebSocket\Server
                 $refObj = new \ReflectionClass($className);     //获取类的相关信息
 
                 $refObjMethod = $refObj->getMethods(\ReflectionMethod::IS_STATIC);
+                $refDoc = $refObj->getDocComment();
+                $authMatches = [];
+                preg_match('/@default\s+(enable|disable|)/i', $refDoc, $authMatches);
+                if (!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]))) continue;
 
                 if (count($refObjMethod) > 0) {
                     foreach ($refObjMethod as $methodInfo) {

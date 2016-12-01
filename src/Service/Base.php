@@ -8,7 +8,11 @@
 
 namespace App\Service;
 
-
+/**
+ * Class Base
+ * @package App\Service
+ * @default disable
+ */
 class Base extends UserBase
 {
 

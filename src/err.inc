@@ -31,6 +31,18 @@ const E_API_NAME_ALREADY_EXISTS = 3005;     // 接口名称已经存在
 const E_API_CREATE_API_ACCOUNT_FAIL = 3006; // 创建apiAccount失败
 const E_API_CREATE_API_INFO_FAIL = 3007;    // 创建apiInfo失败
 const E_API_NAME_IS_ERROR = 3008;           // 接口名称错误
+
+// 微信api错误  200000
+const E_NO_INCOMING_OPENID = 200001;
+const E_OPENID_MAPPING_NO_EXIST = 200002;
+const E_PAY_PRICE_NOT_LEGITIMATE = 200003;  // 支付金额不合法
+const E_GET_PAY_ORDER_FAIL = 200004;    // 获取支付订单失败
+const E_WECHAT_NOT_UPLOAD_FILE = 200005;    // 未上传图片
+const E_WECHAT_MATERIAL_NOT_EXIST_TYPE = 200006;    // 不存在的永久素材类型
+const E_WECHAT_PAYMENT_GET_ORDER_FAIL = 200007;     // 生成微信支付订单失败
+const E_WECHAT_INVALID_CODE = 200008;               // 无效的code
+const E_WECHAT_CODE_LOGIN_FAIL = 200009;            // code码登陆失败
+
 $err = [
     0 => '执行成功',
 
@@ -67,5 +79,17 @@ $err = [
     E_API_CREATE_API_ACCOUNT_FAIL => '创建apiAccount失败',
     E_API_CREATE_API_INFO_FAIL => '创建apiInfo失败',
     E_API_NAME_IS_ERROR => '接口名称错误',
+
+
+    // 微信相关错误
+    E_NO_INCOMING_OPENID => '未传入openid',
+    E_OPENID_MAPPING_NO_EXIST => 'openid映射不存在，请联系开发人员',
+    E_PAY_PRICE_NOT_LEGITIMATE => '支付金额不合法',
+    E_GET_PAY_ORDER_FAIL => '获取支付订单失败',
+    E_WECHAT_NOT_UPLOAD_FILE => '未上传文件',
+    E_WECHAT_MATERIAL_NOT_EXIST_TYPE => '不存在的永久素材类型',
+    E_WECHAT_PAYMENT_GET_ORDER_FAIL => '生成微信支付订单失败',
+    E_WECHAT_INVALID_CODE           => '无效的code',
+    E_WECHAT_CODE_LOGIN_FAIL        => 'code码登陆失败',
 ];
 return $err;

@@ -35,13 +35,10 @@ class Test
             if (!class_exists($className)) continue;
 
             $refObj = new \ReflectionClass($className);
-            $classDoc = $refObj->getDocComment();
+            $refDoc = $refObj->getDocComment();
             $authMatches = [];
-            $aliasMatches = [];
-            //if(!preg_match('/@default\s+(enable|disable|)/i',$classDoc, $authMatches) ) continue;
-            //if('disable' == strtolower($authMatches[1]) ) continue;
-            //if(!preg_match('/@alias\s+(\w+)/ui',$classDoc, $aliasMatches) ) continue;
-            //if(empty($aliasMatches[1]) ) continue;
+            preg_match('/@default\s+(enable|disable|)/i', $refDoc, $authMatches);
+            if (!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]))) continue;
 
             $refObjMethod = $refObj->getMethods(\ReflectionMethod::IS_STATIC);
             if (count($refObjMethod ) > 0) {

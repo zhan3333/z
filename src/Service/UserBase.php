@@ -13,6 +13,11 @@ use App\Factory;
 use App\RepositoryClass;
 use App\Util;
 
+/**
+ * Class UserBase
+ * @package App\Service
+ * @default disable
+ */
 class UserBase
 {
     const USER_LOGIN_TOKEN = 'userLoginToken';

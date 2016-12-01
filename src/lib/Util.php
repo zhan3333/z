@@ -56,4 +56,45 @@ class Util
         }
         return $result;
     }
+
+    /**
+     * 获取调用接口者的ip
+     * @param array $server
+     * @return string
+     */
+    public static function getClientIp($server = [])
+    {
+        $ip = '';
+        if (empty($server)) $server = $_SERVER;
+        if (!empty($server['REMOTE_ADDR'])) $ip = $server['REMOTE_ADDR'];
+        if (!empty($server['HTTP_X_REAL_IP'])) $ip = $server['HTTP_X_REAL_IP'];
+        return $ip;
+    }
+
+    /**
+     * 获取带时差的date对象
+     * @param null|integer $timestamp       时间戳
+     * @param string $dz                    时差，默认为系统时差
+     * @return \DateTime
+     */
+    public static function getDateObj($timestamp = null, $dz = APPTIMEZONE)
+    {
+        $dz = new \DateTimeZone($dz);
+        if ($timestamp == null) {
+            return date_create(null, $dz);
+        } else {
+            return date_create()->setTimestamp($timestamp)->setTimezone($dz);
+        }
+    }
+
+    /**
+     * 对象转为数组
+     * @param $object
+     * @return array
+     */
+    public static function obj2Arr($object)
+    {
+        $object = json_decode(json_encode($object), true);
+        return $object;
+    }
 }

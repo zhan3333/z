@@ -10,6 +10,7 @@ namespace App\Service;
 
 
 use App\Factory;
+use App\Util;
 
 class Tool
 {
@@ -19,6 +20,6 @@ class Tool
      */
     public static function ip()
     {
-        return $_SERVER['HTTP_X_REAL_IP'];
+        return Util::getClientIp();
     }
 }

@@ -108,6 +108,7 @@ class Factory
     }
 
     /**
+     * 初始化服务器对象
      * @param \swoole_server $server
      */
     public static function initServer($server)
@@ -116,6 +117,7 @@ class Factory
     }
 
     /**
+     * 服务器对象
      * @return \swoole_server
      */
     public static function swoole()
@@ -141,6 +143,7 @@ class Factory
     }
 
     /**
+     * 获取Config文件夹中的配置信息
      * @param $name             string      文件名
      * @param array ...$item
      * @return null
@@ -156,6 +159,7 @@ class Factory
     }
 
     /**
+     * 获取日志打印对象
      * @param $name
      * @return Logger
      */
@@ -251,5 +255,61 @@ class Factory
         $content = empty($GLOBALS['php://input'])?'':$GLOBALS['php://input'];
         $request = new Request($_GET, $_POST, [], $_COOKIE, $_FILES, $_SERVER, $content);
         return $request;
+    }
+
+    // 解析设备标识对象
+
+    /**
+     * 解析设备标识对象
+     * @return Agent
+     */
+    public static function agent()
+    {
+        $objectId = __FUNCTION__;
+        if (empty(self::$objects[$objectId])) {
+            self::$objects[$objectId] = new Agent();
+        }
+        return self::$objects[$objectId];
+    }
+
+    // geoIp，解析ip地址对象
+
+    /**
+     * @param string $local
+     * @return Reader
+     */
+    public static function geoIp($local = 'zh-CN')
+    {
+        $objectId = __FUNCTION__ . '.' . $local;
+        if (empty(self::$objects[$objectId])) {
+            $geoIp = new Reader(self::getConfig('app', 'geoIpDatabasesPath'));
+            self::$objects[$objectId] = $geoIp;
+        }
+        return self::$objects[$objectId];
+    }
+
+    /**
+     * 解析ip地址，获取ip地址对应的城市，省，国家
+     * @param $ip
+     * @return array
+     */
+    public static function parseIp($ip)
+    {
+        $city = null;
+        $province = null;
+        $country = null;
+        try {
+            $geoIp = self::geoIp();
+            $record = $geoIp->city($ip);
+            $country = $record->country->names['zh-CN'];
+            $city = $record->city->names['zh-CN'];
+            $province = $record->mostSpecificSubdivision->names['zh-CN'];
+        } catch (\Exception $e) {
+        }
+        return [
+            'city' => $city,
+            'country' => $country,
+            'province' => $province
+        ];
     }
 }

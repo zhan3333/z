@@ -30,7 +30,11 @@ class FileSystem
             $path = APPPATH . '/test';
         }
         try {
-            $result = self::getFileList($path);
+            $result = self::getFileList($path, true);
+            foreach ($result['child'] as $key => $value) {
+                $sizeArr[$key] = $value['info']['fileSize'];
+            }
+            array_multisort($sizeArr, SORT_DESC);
             return [
                 'result' => $result
             ];
@@ -40,61 +44,57 @@ class FileSystem
         return [];
     }
 
-    private static function getFileList($path)
+    private static function getFileList($path, $deep = false)
     {
-        if (!is_dir($path) && !is_file($path)) return [];
-        if (is_file($path)) {
-            $info = pathinfo($path);
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $info
-            ]);
-
+        if (!is_dir($path)) {
+            $fs = new \SplFileInfo($path);
+        } else {
+            $fs = new \FilesystemIterator($path, \FilesystemIterator::KEY_AS_FILENAME);
+        }
+        $type = $fs->getType();
+        if ($type == 'dir') {
+            $infoArr= [];
+            if ($deep) {
+                foreach ($fs as $key => $item) {
+                    /**@var $item \SplFileInfo*/
+                    $infoArr[] = self::getFileList($item->getPathname());
+                }
+            }
             return [
                 'info' => [
-                    'dirname' => $info['dirname'],
-                    'basename' => $info['basename'],
-                    'type' => 'file',
-                    'perms' => '',
-                    'fileSize' => '',
-                    'date' => ''
+                    'dirname' => $fs->getPath(),
+                    'basename' => substr($fs->getPath(), strrpos($fs->getPath(), '/') + 1),
+                    'type' => $type,
+                    'perms' => substr(sprintf('%o', $fs->getPerms()), -4),
+                    'fileSize' => -1,
+                    'date' => $fs->getATime()
+                ],
+                'child' => $infoArr
+            ];
+        } elseif ($type == 'link') {
+            return [
+                'info' => [
+                    'type' => $type,
+                    'dirname' => '..'
                 ],
                 'child' => []
             ];
-        }
-        $fs = new \FilesystemIterator($path, \FilesystemIterator::KEY_AS_FILENAME);
-        if ($fs->isDir()) {
-            $infoArr= [];
-            foreach ($fs as $key => $item) {
-                /**@var $item \SplFileInfo*/
-                if ($item->isDir()) {
-//                    文件夹
-                    $infoArr[] = self::getFileList($item->getPathname());
-                } else {
-//                    文件
-                    $infoArr[] = [
-                        'info' => [
-                            'dirname' => $item->getPath(),
-                            'basename' => $item->getBasename(),
-                            'type' => 'file',
-                            'perms' => substr(sprintf('%o', $item->getPerms()), -4),
-                            'fileSize' => $item->getSize(),
-                            'date' => $item->getATime()
-                        ],
-                        'child' => []
-                    ];
-                }
-            }
+        } elseif ($type == 'file') {
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                'dirname' => $fs->getPath(),
+                $type
+            ]);
 
             return [
                 'info' => [
                     'dirname' => $fs->getPath(),
                     'basename' => substr($fs->getPath(), strrpos($fs->getPath(), '/') + 1),
-                    'type' => 'dir',
+                    'type' => $type,
                     'perms' => substr(sprintf('%o', $fs->getPerms()), -4),
-                    'fileSize' => '-',
+                    'fileSize' => $fs->getSize(),
                     'date' => $fs->getATime()
                 ],
-                'child' => $infoArr
+                'child' => []
             ];
         }
         return [];

@@ -13,7 +13,7 @@ $options = [
     'aes_key'   => '6MzSyoGS8ivpLaTuNQqXrFpwQWHqpsMHiP0BfHud2bb',
     'log' => [
         'level' => 'debug',
-        'file'  => WEBPATH . '/log/easywechat.log',
+        'file'  => APPPATH . '/log/easywechat.log',
     ],
 
 //    // payment

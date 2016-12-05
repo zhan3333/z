@@ -9,7 +9,7 @@ return [
     //监听的HOST
     'host'   => 'ws://0.0.0.0',
     //监听的端口
-    'port'   => '2000',
+    'port'   => '2001',
     'debug' => 1,
     'log_file'        => APPPATH . '/log/app.log',
     'pid_file' => APPPATH . '/master.pid',

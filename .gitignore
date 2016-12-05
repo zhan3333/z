@@ -1,5 +1,4 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
 vendor/
-src/Config/db.php
-src/Config/wechat.php
+src/Config/

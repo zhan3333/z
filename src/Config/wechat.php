@@ -7,10 +7,10 @@
  */
 $options = [
     'debug'     => true,
-    'app_id'    => 'wxb2ce0d5efa9a8468',
-    'secret'    => 'a0bce6ada5a8b7e0d1903b789f9b836c',
-    'token'     => 'zhan',
-    'aes_key'   => '6MzSyoGS8ivpLaTuNQqXrFpwQWHqpsMHiP0BfHud2bb',
+    'app_id'    => '',
+    'secret'    => '',
+    'token'     => '',
+    'aes_key'   => '',
     'log' => [
         'level' => 'debug',
         'file'  => APPPATH . '/log/easywechat.log',

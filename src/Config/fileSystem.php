@@ -6,8 +6,7 @@
  * Time: 20:54
  */
 $uploadDir = 'test';
-$downBaseUrl = 'http://res.zhannnnn.top/work/z/';
 return [
     'uploadDir' => $uploadDir,
-    'downBaseUrl' => $downBaseUrl
+    'rootPath' => APPPATH . '/' . $uploadDir
 ];

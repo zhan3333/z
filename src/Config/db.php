@@ -7,8 +7,8 @@
  */
 $master = [
     'driver' => 'pdo_mysql',
-    'user' => 'duobao',
-    'password' => 'duobao',
+    'user' => '',
+    'password' => '',
     'dbname' => 'z',
     'host' => '127.0.0.1',
     'charset' => 'utf8',

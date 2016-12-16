@@ -8,6 +8,7 @@
 
 namespace App;
 use App\Entities\NormalAccountRepository;
+use App\Entities\TestRepository;
 use App\Entities\UserRepository;
 
 /**
@@ -31,5 +32,13 @@ class RepositoryClass
     public static function NormalAccount()
     {
         return Factory::em()->getRepository(':NormalAccount');
+    }
+
+    /**
+     * @return TestRepository
+     */
+    public static function Test()
+    {
+        return Factory::em()->getRepository(':Test');
     }
 }

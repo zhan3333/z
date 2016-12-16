@@ -13,10 +13,12 @@ use App\Documents\BlogPost;
 use App\Documents\User;
 use App\Entities\ApiInfo;
 use App\Entities\Student;
+use App\Err;
 use App\Factory;
 use App\RepositoryClass;
 use App\Util;
 use FilesystemIterator;
+use Hprose\Swoole\WebSocket\Client;
 
 class Test
 {
@@ -47,7 +49,7 @@ class Test
                     if (!$methodInfo->isPublic()) continue;
                     if (!$methodInfo->isStatic()) continue;
 
-                    $methodDoc = $methodInfo->getDocComment();
+                    $methodDoc = $methodInfo->getDocComment();      // 接口文档
 
                     $authMatches = [];
 
@@ -60,6 +62,92 @@ class Test
                         $argMatches = [];
                         if(preg_match('/@param\s+(\w+)\s+\$'.$paramInfo->name.'/i',$methodDoc, $argMatches) ) {
                             $methodData[$paramInfo->name] = $argMatches[1];
+                        }
+                        else {
+                            $methodData[$paramInfo->name] = $paramInfo->name;
+                        }
+                    }
+                }
+                if(!empty($classData) ) {
+                    ksort($classData);
+                }
+                else {
+                    unset($ret[$pathInfo['filename'] ]);
+                }
+            }
+
+        }
+        ksort($ret);
+        return $ret;
+    }
+
+    /**
+     * 新的获取调试api列表
+     * @default enable
+     * @return array
+     * <pre>
+     * [
+     *  [
+     *      'className' => [                    // 类名称
+     *          'apiName' => [                  // 接口名称
+     *              'params' => [               // 参数数组
+     *                  'param1Name' => [       // 参数名称
+     *                      'type' => '',       // 参数类型
+     *                      'doc' => ''         // 参数注释
+     *                  ],
+     *                  ...
+     *              ],
+     *              'doc' => ''                 // 接口文档
+     *          ],
+     *          'doc' => '',                    // 类文档
+     *      ]
+     *  ]
+     * ]
+     * </pre>
+     */
+    public static function getApiListNew()
+    {
+        $ret = array();
+        $itFile = new \FilesystemIterator(__DIR__, \FilesystemIterator::KEY_AS_FILENAME);
+        foreach ($itFile as $fileName) {
+            $pathInfo = pathinfo($fileName);
+            if ('php' != $pathInfo['extension']) continue;
+            if('Base' == $pathInfo['filename']) continue;
+            $className = "App\\Service\\". $pathInfo['filename'];
+            if (!class_exists($className)) continue;
+
+            $refObj = new \ReflectionClass($className);
+            $refDoc = $refObj->getDocComment();
+            $authMatches = [];
+            preg_match('/@default\s+(enable|disable|)/i', $refDoc, $authMatches);
+            if (!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]))) continue;
+
+            $refObjMethods = $refObj->getMethods(\ReflectionMethod::IS_STATIC);
+            if (count($refObjMethods ) > 0) {
+                $classData = &$ret[$pathInfo['filename'] ];
+                $classDoc = $refObj->getDocComment();               // 类文档
+                foreach ($refObjMethods as $methodInfo) {
+                    if (!$methodInfo->isPublic()) continue;
+                    if (!$methodInfo->isStatic()) continue;
+
+                    $methodDoc = $methodInfo->getDocComment();      // 接口文档
+
+                    $authMatches = [];
+
+                    preg_match('/@default\s+(enable|disable|)/i', $methodDoc, $authMatches);
+                    if(!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]) ) ) continue;
+
+                    $methodData = &$classData[$methodInfo->name];
+                    $methodParam = $methodInfo->getParameters();
+                    Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                        $methodParam
+                    ]);
+
+                    foreach ($methodParam as $paramInfo) {
+                        /** @var $paramInfo \ReflectionParameter*/
+                        $argMatches = [];
+                        if(preg_match('/@param\s+(\w+)\s+\$'.$paramInfo->name.'/i',$methodDoc, $argMatches) ) {
+                            $methodData[$paramInfo->name] = $argMatches[1];     // 参数类型
                         }
                         else {
                             $methodData[$paramInfo->name] = $paramInfo->name;
@@ -149,137 +237,80 @@ class Test
     }
 
     /**
-     * @param string $normalAccount
-     * @return int
+     * 测试消息推送
      */
-    public static function testNormalAccount2UserId($normalAccount)
-    {
-        $userId = RepositoryClass::NormalAccount()->normalAccount2UserId($normalAccount);
-        return $userId;
-    }
-
-    public static function testRandom($len, $ext = [])
-    {
-        return Util::random($len, $ext);
-    }
-
-    /**
-     * @param $where
-     * @param $orderBy
-     * @param $length
-     * @param $first
-     * @return array
-     */
-    public static function testGetTable($where, $orderBy, $length, $first)
-    {
-        $filter = 0;
-        $result = RepositoryClass::ApiInfo()->getApiInfoList($filter, $where, $orderBy, $length, $first);
-        return [
-            'result' => $result
-        ];
-    }
-
-    public static function testGet($where, $shows = [], $hides = [])
-    {
-        $result = ApiInfo::get($where, $shows, $hides);
-        return [
-            'result' => $result
-        ];
-    }
-
-    public static function testGetById($value, $shows = [], $hides = [])
-    {
-        $result = ApiInfo::getById($value, $shows, $hides);
-        return [
-            'result' => $result
-        ];
-    }
-
-    public static function testArrayShift()
-    {
-        $arr = ['id'];
-        $result = array_shift($arr);
-        return [
-            'result' => $result
-        ];
-    }
-
-    public static function testDelete($id)
-    {
-        $result = ApiInfo::deleteById($id);
-        return [
-            'result' => $result
-        ];
-    }
-
-    public static function testTime()
-    {
-        $amount = 1;
-        $a = 'test';
-        $b = ' time';
-        $ret = '';
-        $time1 = microtime(true);
-        // 直接点运算符
-        for($i = 0; $i < $amount; $i ++) {
-            $ret = $a . $b;
-        }
-        $time2 = microtime(true);
-        // 双引号解析
-        for($i = 0; $i < $amount; $i ++) {
-            $ret = "$a$b";
-        }
-        $time3 = microtime(true);
-        // 双引号加花括号分别括起
-        for($i = 0; $i < $amount; $i ++) {
-            $ret = "{$a}{$b}";
-        }
-        $time4 = microtime(true);
-        // 直接赋值:单引号
-        for($i = 0; $i < $amount; $i ++) {
-            $ret = 'test time';
-        }
-        $time5 = microtime(true);
-        // 直接赋值：双引号
-        for($i = 0; $i < $amount; $i ++) {
-            $ret = "test time";
-        }
-        $time6 = microtime(true);
-        $retArr = [
-            '$ret = $a . $b' => $time2 - $time1,
-            '$ret = "$a$b"' => $time3 - $time2,
-            ' $ret = "{$a}{$b}"' => $time4 - $time3,
-            '$ret = \'test time\'' => $time5 - $time4,
-            '$ret = "test time"' => $time6 - $time5
-        ];
-        array_multisort($retArr);
-        return [
-            'result' => $retArr
-        ];
-    }
-
-    public static function testResetDQLParts()
+    public static function testPush()
     {
         try {
-            $qb = RepositoryClass::ApiInfo()->createQueryBuilder('s');
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $qb->getQuery()->getSQL()
-            ]);
-
-            $qb->where('s.id =:id')->setParameter('id', 11);
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $qb->getQuery()->getSQL()
-            ]);
-            $qb->getQuery()->getArrayResult();
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $qb->getQuery()->getSQL()
-            ]);
-            $qb->resetDQLParts();
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $qb->getQuery()->getSQL()
-            ]);
+            $serv = Factory::swoole();
+            $serv->publish('time');
+            $serv->push('time', microtime(true));
         } catch (\Exception $e) {
-            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $e
+            ]);
         }
+    }
 
+    public static function testPushClient()
+    {
+        $client = new Client("ws://127.0.0.1:2001");
+        $count = 0;
+        $client->subscribe('time', function($date) use ($client, &$count) {
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $date
+            ]);
+
+            if (++$count > 10) {
+                $client->unsubscribe('time');
+                swoole_event_exit();
+            }
+            else {
+                var_dump($date);
+            }
+        });
+    }
+
+    public static function getTestById($id)
+    {
+        $result = RepositoryClass::Test()->find($id);
+        return [
+            'result' => $result
+        ];
+    }
+
+    public static function addTest($text)
+    {
+        try {
+            $Test = new \App\Entities\Test();
+            $Test->setText($text);
+            $em = Factory::em();
+            $em->persist($Test);
+            $em->flush();
+        } catch (\Exception $e) {
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $e
+            ]);
+
+        }
+    }
+
+    public static function json_encode($text)
+    {
+        return [
+            'result' => json_encode($text)
+        ];
+    }
+
+    public static function json_decode($text)
+    {
+        return [
+            'result' => json_decode($text)
+        ];
+    }
+
+    public static function returnErr()
+    {
+        return Err::setLastErr(E_PATH_IS_ILLEGAL);
     }
 }

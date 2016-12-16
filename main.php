@@ -50,10 +50,14 @@ class main extends Hprose\Swoole\WebSocket\Server
         $this->pidFile = $pidFile;
     }
 
-    public function workerStart(swoole_server $server, $worker_id)
+    public function workerStart(swoole_websocket_server $server, $worker_id)
     {
         Err::init();
-        Factory::initServer($server);
+        Factory::initServer($this);
+        $swoole = $this;
+        $server->tick(1000, function() use ($swoole) {
+            $swoole->push('time', microtime(true));
+        });
         Factory::initConfig();
         if ($worker_id >= $server->setting['worker_num']) {
             echo ' Task ', $worker_id, ' Start', PHP_EOL;
@@ -99,15 +103,20 @@ class main extends Hprose\Swoole\WebSocket\Server
                         if (!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]))) continue;
                         if (false !== stripos($methodInfo, 'asyncRet')) continue;
                         $isAsync = (false !== stripos($methodInfo, 'async'));
+                        $apiName = $pathInfo['filename'].'_'.$methodInfo->name;
+                        $isPassContext = null;
+
+                        $options = [
+                            'mode' => Hprose\ResultMode::Normal,
+                            'simple' => null,
+                            'async' => $isAsync,
+                            'passContext' => $isPassContext
+                        ];
                         $this->addFunction(
                             [__CLASS__, 'hproseProxy'],
 //                            [$className, $methodInfo->name],
-                            $pathInfo['filename'].'_'.$methodInfo->name,
-                            [
-                                'mode' => Hprose\ResultMode::Normal,
-                                'simple' => null,
-                                'async' => $isAsync
-                            ]
+                            $apiName,
+                            $options
                         );
                     }
                 }
@@ -156,15 +165,8 @@ class main extends Hprose\Swoole\WebSocket\Server
         return $result;
     }
 
-    public function start()
-    {
-        $this->on('workerStart', [$this, 'workerStart']);
-        $this->on('start', [$this, 'swooleStart']);
-        $this->on('managerStart', [$this, 'managerStart']);
-        parent::start();
-    }
 
-    public function swooleStart(swoole_server $server)
+    public function swooleStart(swoole_websocket_server $server)
     {
         // 打印url与master_pid信息
         echo APP_PREFIX . ' swoole start: ' . $this->host . ':' . $this->port
@@ -213,9 +215,9 @@ class main extends Hprose\Swoole\WebSocket\Server
         if (!empty($request->cookie) ) $_COOKIE = $request->cookie;
         if (!empty($request->server) ) $_SERVER = array_change_key_case($request->server, CASE_UPPER);
         //获取非urlencode-form表单的POST原始数据，现用于接收微信支付的回调结果
-        if (!empty($request->rawContent())) {
-            $GLOBALS['php://input'] = $request->rawContent();
-        }
+//        if (!empty($request->rawContent())) {
+//            $GLOBALS['php://input'] = $request->rawContent();
+//        }
         $_REQUEST = array_merge($_GET, $_POST, $_COOKIE);
 
         /**
@@ -252,6 +254,7 @@ class main extends Hprose\Swoole\WebSocket\Server
         }
         $context = $this->createContext($request, $response);
         $GLOBALS['context'] = $context;     // 存储在全局中
+        $response->header('Access-Control-Allow-Headers', "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
         return parent::handle($request, $response);
     }
 
@@ -288,7 +291,7 @@ class main extends Hprose\Swoole\WebSocket\Server
      * 管理进程启动时调用
      * @param swoole_server $server
      */
-    public function managerStart(swoole_server $server)
+    public function managerStart(swoole_websocket_server $server)
     {
         echo 'manager start... '. PHP_EOL;
         cli_set_process_title('z manager');
@@ -298,13 +301,27 @@ class main extends Hprose\Swoole\WebSocket\Server
         }
     }
 
-    public function managerStop(swoole_server $server)
+    public function managerStop(swoole_websocket_server $server)
     {
         echo 'manager stop... '. PHP_EOL;
         if (!empty($this->pidFile))
         {
             unlink($this->pidFile);
         }
+    }
+
+    // 消息推送相关事件
+
+    /**
+     * 设置事件监听
+     */
+    public function start()
+    {
+        $this->on('workerStart', [$this, 'workerStart']);
+        $this->on('start', [$this, 'swooleStart']);
+        $this->on('managerStart', [$this, 'managerStart']);
+        $this->publish('time');
+        parent::start();
     }
 }
 

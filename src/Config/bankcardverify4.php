@@ -9,9 +9,12 @@
 $conf = [
     // 简单调用（使用appcode调用）
     'simple' => [
-        'appcode' => ''
+        'appcode' => '',
     ],
     // api签名调用
-    'signature' => []
+    'signature' => [],
+    'log' => [
+        'file'  => APPPATH . '/log/bankcardverify4.log',        // 日志文件路径
+    ]
 ];
 return $conf;

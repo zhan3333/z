@@ -15,6 +15,7 @@ use App\Entities\ApiInfo;
 use App\Entities\Student;
 use App\Err;
 use App\Factory;
+use App\Module\AliYun\BankCardVerify4;
 use App\RepositoryClass;
 use App\Util;
 use FilesystemIterator;
@@ -313,4 +314,71 @@ class Test
     {
         return Err::setLastErr(E_PATH_IS_ILLEGAL);
     }
+
+    /**
+     * 测试四元素检测模块
+     * 建议缓冲查询结果
+     * @doc https://market.aliyun.com/products/57000002/cmapi011455.html#sku=yuncode545500005
+     * @param string    $bankCard   // 银行卡号 ：6216600800000770000
+     * @param string    $idCard     // 身份证号 ：420222199210101054
+     * @param string    $mobile     // 手机号   ：13517210601
+     * @param string    $realName   // 真实姓名 ：小詹
+     * @return array    查询结果
+     * <pre>
+     * [
+     *  'status' => 0, // 第一错误码 201：银行卡号为空，202：真实姓名为空，203：银行卡号不正确，204：真实姓名包含特殊字符，205：身份证不正确，210：没有消息
+     *  'msg' => 'ok',
+     *  'result' => [
+     *      'bankcard' => '6216600800000770000',             // 银行卡号
+     *      'realname' => '小詹',                            // 真实姓名
+     *      'idcard' => '420222199210101054',               // 身份证号
+     *      'mobile' => '13517210601',                      // 手机号
+     *      'verifystatus' => '1',                          // 验证结果  0：一致， 1：不一致
+     *      'verifymsg' => '抱歉，银行卡号校验不一致！'        // 验证结果消息
+     *  ]
+     * ]
+     * </pre>
+     */
+    public static function testBankCardVerify4($bankCard = '', $idCard = '', $mobile = '', $realName = '')
+    {
+        try {
+            $B = Factory::BankCardVerify4();
+            if (empty($bankCard)) $bankCard = '6210985200013406610';
+            if (empty($idCard)) $idCard = '420923199209286357';
+            if (empty($mobile)) $mobile = '15102778299';
+            if (empty($realName)) $realName = '李圣文';
+            $result = $B->verify($bankCard, $idCard, $mobile, $realName);
+            return [
+                'result' => $result
+            ];
+        } catch (\Exception $e) {
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $e
+            ]);
+            return Err::setLastErr(E_SYS_ERROR);    // 系统错误
+        }
+    }
+
+    /**
+     * 测试utf8_encode 函数
+     * @param $name
+     * @return string
+     */
+    public static function test_urlencode($name)
+    {
+        return urlencode($name);
+    }
+
+    public static function testRequests()
+    {
+        $headers = ['Accept' => 'application/json'];
+        $options = [];
+        $request = \Requests::get('http://www.baidu.com', $headers, $options);
+        Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+            $request->status_code, $request->body, $request->headers
+        ]);
+
+    }
+
+
 }

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Module\AliYun\BankCardVerify4;
 use App\Module\Cache\Redis;
 
 use EasyWeChat\Foundation\Application;
@@ -317,5 +318,19 @@ class Factory
             'country' => $country,
             'province' => $province
         ];
+    }
+
+    /**
+     * 银行卡号四元素验证对象获取
+     * @return BankCardVerify4
+     */
+    public static function BankCardVerify4()
+    {
+        if (empty(Factory::getConfig('bankcardverify4'))) throw new \Exception('未找到BankCardVerify4的配置文件:bankcardverify4.php');
+        $objectId = __FUNCTION__;
+        if (empty(self::$objects[$objectId])) {
+            self::$objects[$objectId] = new BankCardVerify4(BankCardVerify4::TYPE_SIMPLE, Factory::getConfig('bankcardverify4'));
+        }
+        return self::$objects[$objectId];
     }
 }

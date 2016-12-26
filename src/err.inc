@@ -1,5 +1,6 @@
 <?php
 const E_SYS_ERROR = 101;
+const E_NETWORK_ANOMALY = 102;
 
 const E_FILE_OR_DIR_NOT_EXIST = 1000;
 const E_FILE_NOT_EXIST = 1001;
@@ -48,6 +49,7 @@ const E_WECHAT_CODE_LOGIN_FAIL = 200009;            // code码登陆失败
 $err = [
     0 => '执行成功',
     E_SYS_ERROR => '系统错误',
+    E_NETWORK_ANOMALY => '网络异常',
 
     // 文件相关错误
     E_FILE_OR_DIR_NOT_EXIST => '文件或文件夹不存在',

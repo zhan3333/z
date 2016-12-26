@@ -97,4 +97,14 @@ class Util
         $object = json_decode(json_encode($object), true);
         return $object;
     }
+
+    /**
+     * 检测手机号
+     * @param $mobile
+     * @return bool
+     */
+    public static function checkMobile($mobile)
+    {
+        return preg_match('/^(\+?86-?)?(18|15|13|17)[0-9]{9}$/', $mobile) ? true : false;
+    }
 }

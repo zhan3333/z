@@ -5,6 +5,7 @@ namespace App;
 use App\Module\AliYun\BankCardVerify4;
 use App\Module\Cache\Redis;
 
+use App\Module\Juhe\NewsHeadlines;
 use EasyWeChat\Foundation\Application;
 use GeoIp2\Database\Reader;
 use Jenssegers\Agent\Agent;
@@ -323,6 +324,7 @@ class Factory
     /**
      * 银行卡号四元素验证对象获取
      * @return BankCardVerify4
+     * @throws \Exception
      */
     public static function BankCardVerify4()
     {
@@ -330,6 +332,22 @@ class Factory
         $objectId = __FUNCTION__;
         if (empty(self::$objects[$objectId])) {
             self::$objects[$objectId] = new BankCardVerify4(BankCardVerify4::TYPE_SIMPLE, Factory::getConfig('bankcardverify4'));
+        }
+        return self::$objects[$objectId];
+    }
+
+    /**
+     * 获取聚合头条对象
+     * @return NewsHeadlines
+     * @throws \Exception
+     */
+    public static function JuheNewsHeadlines()
+    {
+        $objectId = __FUNCTION__;
+        if (empty(self::$objects[$objectId])) {
+            $config = Factory::getConfig('juhe', 'newsHeadlines');
+            if (empty($config)) throw new \Exception('未找到聚合头条配置文件信息');
+            self::$objects[$objectId] = new NewsHeadlines($config);
         }
         return self::$objects[$objectId];
     }

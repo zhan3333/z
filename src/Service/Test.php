@@ -380,5 +380,35 @@ class Test
 
     }
 
+    public static function testExplode()
+    {
+        $str = 'qrscene_{\"anchorId\":\"25\",\"type\":\"anchor\"}';
+        $str2 = '{\"anchorId\":\"25\",\"type\":\"anchor\"}';
+        $ret = explode('qrscene_', $str);
+        $ret2 = explode('qrscene_', $str2);
+        $ret3 = stripos($str, 'qrscene_');
+        return [
+            'ret1' => $ret,
+            'ret2' => $ret2,
+            'ret3' => $ret3
+        ];
+    }
+
+    public static function testGetNews($type = 'top')
+    {
+        try {
+            $News = Factory::JuheNewsHeadlines();
+            $result = $News->getNews($type);
+            $body = $result->body;
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                $body,
+                $News->AppKey
+            ]);
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
+            return [];
+        }
+    }
+
 
 }

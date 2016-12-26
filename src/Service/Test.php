@@ -394,16 +394,27 @@ class Test
         ];
     }
 
+    /**
+     * 获取新闻信息
+     * @param string $type
+     * @return array
+     */
     public static function testGetNews($type = 'top')
     {
         try {
             $News = Factory::JuheNewsHeadlines();
             $result = $News->getNews($type);
             $body = $result->body;
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $body,
-                $News->AppKey
-            ]);
+            $body = json_decode($body, true);
+            if ($body['error_code'] == 0) {
+                // 请求成功
+                $data = $body['result'];
+            } else {
+                $data = [];
+            }
+            return [
+                'news' => $data
+            ];
         } catch (\Exception $e) {
             Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
             return [];

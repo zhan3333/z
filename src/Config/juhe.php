@@ -22,6 +22,13 @@ $options = [
     // 头条配置
     'newsHeadlines' => [
         'AppKey' => '',
+    ],
+    /**
+     * 笑话大全配置
+     * @doc https://www.juhe.cn/docs/api/id/95
+     */
+    'joke' => [
+        'AppKey' => ''
     ]
 ];
 return $options;

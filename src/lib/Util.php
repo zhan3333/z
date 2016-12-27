@@ -107,4 +107,13 @@ class Util
     {
         return preg_match('/^(\+?86-?)?(18|15|13|17)[0-9]{9}$/', $mobile) ? true : false;
     }
+
+    /**
+     * 生成内部用订单号
+     */
+    public static function generateOrderNum()
+    {
+        $id = dk_get_next_id();
+        return $id;
+    }
 }

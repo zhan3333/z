@@ -421,5 +421,95 @@ class Test
         }
     }
 
+    /**
+     * 获取随机笑话
+     * @param string $type
+     * @return array
+     */
+    public static function getRandJoke($type = '')
+    {
+        try {
+            $Joke = Factory::JuheJoke();
+            $result = $Joke->getRandJoke($type);
+            $result = json_decode($result->body, true);
+            return [
+                'result' => $result
+            ];
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
+            return Err::setLastErr(E_SYS_ERROR);
+        }
+    }
+
+    /**
+     * 获取最新图片笑话
+     * @param int $page
+     * @param int $pagesize
+     * @return array
+     */
+    public static function getNewImgJoke($page = 1, $pagesize = 1)
+    {
+        $Joke = Factory::JuheJoke();
+        $result = $Joke->getNewImgJoke($page, $pagesize);
+        $result = json_decode($result->body, true);
+        return [
+            'result' => $result
+        ];
+    }
+
+    /**
+     * 按照更新时间来获取图片笑话
+     * @param int $page
+     * @param int $pagesize
+     * @param string $sort
+     * @param int $time
+     * @return array
+     */
+    public static function getListImgJoke($page = 1, $pagesize = 1, $sort = 'desc', $time = 0)
+    {
+        $Joke = Factory::JuheJoke();
+        $result = $Joke->getListImgJoke($page, $pagesize, $sort, $time);
+        $result = json_decode($result->body, true);
+
+        return [
+            'result' => $result
+        ];
+    }
+
+    /**
+     * 获取最新文字笑话
+     * @param int $page
+     * @param int $pagesize
+     * @return array
+     */
+    public static function getNewTextJoke($page = 1, $pagesize = 1)
+    {
+        $Joke = Factory::JuheJoke();
+        $result = $Joke->getNewTextJoke($page, $pagesize);
+        $result = json_decode($result->body, true);
+
+        return [
+            'result' => $result
+        ];
+    }
+
+    /**
+     * 按照更新时间获取文字笑话
+     * @param int $page
+     * @param int $pagesize
+     * @param string $sort
+     * @param int $time
+     * @return array
+     */
+    public static function getListTextJoke($page = 1, $pagesize = 1, $sort = 'desc', $time = 0)
+    {
+        $Joke = Factory::JuheJoke();
+        $result = $Joke->getListTextJoke($page, $pagesize, $sort, $time);
+        $result = json_decode($result->body, true);
+
+        return [
+            'result' => $result
+        ];
+    }
 
 }

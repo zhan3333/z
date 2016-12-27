@@ -5,6 +5,7 @@ namespace App;
 use App\Module\AliYun\BankCardVerify4;
 use App\Module\Cache\Redis;
 
+use App\Module\Juhe\Joke;
 use App\Module\Juhe\NewsHeadlines;
 use EasyWeChat\Foundation\Application;
 use GeoIp2\Database\Reader;
@@ -348,6 +349,22 @@ class Factory
             $config = Factory::getConfig('juhe', 'newsHeadlines');
             if (empty($config)) throw new \Exception('未找到聚合头条配置文件信息');
             self::$objects[$objectId] = new NewsHeadlines($config);
+        }
+        return self::$objects[$objectId];
+    }
+
+    /**
+     * 获取聚合笑话大全对象
+     * @return Joke
+     * @throws \Exception
+     */
+    public static function JuheJoke()
+    {
+        $objectId = __FUNCTION__;
+        if (empty(self::$objects[$objectId])) {
+            $config = Factory::getConfig('juhe', 'joke');
+            if (empty($config)) throw new \Exception('未找到聚合头条配置文件信息');
+            self::$objects[$objectId] = new Joke($config);
         }
         return self::$objects[$objectId];
     }

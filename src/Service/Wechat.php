@@ -35,14 +35,20 @@ class Wechat extends Base
      */
     public static function response()
     {
-        ob_start();
-        $app = Factory::wechat();
-        $server = $app->server;
-        $server->setRequest(Factory::getRequestObj());
-        $server->setMessageHandler(__CLASS__ . '::message');
-        $server->serve()->send();
-        $result = ob_get_clean();
-        return $result;
+        try {
+            ob_start();
+            $app = Factory::wechat();
+            $server = $app->server;
+            $server->setRequest(Factory::getRequestObj());
+            $server->setMessageHandler(__CLASS__ . '::message');
+            $server->serve()->send();
+            $result = ob_get_clean();
+            return $result;
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
+            ob_clean();
+            return false;
+        }
     }
 
     /**
@@ -129,6 +135,89 @@ class Wechat extends Base
      */
     private static function eventDo($message, &$retMsg)
     {
+        $event = strtolower($message->Event);       // 事件类型
+        switch ($event) {
+            case 'subscribe':
+                self::eventSubscribe($message, $retMsg);
+                break;
+            case 'unsubscribe':
+                self::eventUnsubscribe($message, $retMsg);
+                break;
+            case 'scan':
+                self::eventScan($message, $retMsg);
+                break;
+            case 'location':
+                self::eventLocation($message, $retMsg);
+                break;
+            case 'click':
+                self::eventClick($message, $retMsg);
+                break;
+            case 'view':
+                self::eventView($message, $retMsg);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 关注事件，包括直接点击关注按钮、未关注扫码关注
+     * @param $message
+     * @param $retMsg
+     * @return array
+     */
+    private static function eventSubscribe($message, &$retMsg)
+    {
+    }
+
+    /**
+     * 取消关注事件
+     * @param $message
+     * @param $retMsg
+     */
+    private static function eventUnsubscribe($message, &$retMsg)
+    {
+
+    }
+
+    /**
+     * 已关注用户扫描二维码事件
+     * @param $message
+     * @param $retMsg
+     */
+    private static function eventScan($message, &$retMsg)
+    {
+
+    }
+
+    /**
+     * 用户上报地理事件
+     * @param $message
+     * @param $retMsg
+     */
+    private static function eventLocation($message, &$retMsg)
+    {
+
+    }
+
+    /**
+     * 用户点击公众号菜单拉取消息事件
+     * @param $message
+     * @param $retMsg
+     */
+    private static function eventClick($message, &$retMsg)
+    {
+
+    }
+
+    /**
+     * 用户点击按菜单跳转到自定义页面事件
+     * @param $message
+     * @param $retMsg
+     */
+    private static function eventView($message, &$retMsg)
+    {
+
     }
 
     /**
@@ -244,7 +333,7 @@ class Wechat extends Base
         $addRet = $menu->add($buttons);
         if (!isset($addRet['errcode'])) {
             // 未知错误
-            return Err::setLastErr(E_SYSTEM_ERROR); // 系统错误
+            return Err::setLastErr(E_SYS_ERROR); // 系统错误
         } else {
             if ($addRet['errcode'] !== 0) return Err::setLastErr($addRet['errcode']);
         }
@@ -290,7 +379,7 @@ class Wechat extends Base
         }
         if (!isset($deleteRet['errcode'])) {
             // 未知错误
-            return Err::setLastErr(E_SYSTEM_ERROR); // 系统错误
+            return Err::setLastErr(E_SYS_ERROR); // 系统错误
         } else {
             if ($deleteRet['errcode'] !== 0) return Err::setLastErr($deleteRet['errcode']);
         }
@@ -481,607 +570,6 @@ class Wechat extends Base
         //判断是否生成记录成功，若生成记录失败，则返回错误信息
         if(empty($recordRet)) return false;
         return true;
-    }
-
-    // 用户相关
-
-    /**
-     * 根据openid获取用户微信信息
-     * @param $openid
-     * @return array
-     */
-    private static function getUserInfoByOpenid($openid)
-    {
-        try {
-            $user = Factory::wechat()->user;
-            $userInfo = $user->get($openid);
-            return $userInfo;
-        } catch (\Exception $e) {
-            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
-            return ['openid' => $openid];
-        }
-    }
-
-    /**
-     * 根据openid获取用户微信信息
-     * @param $openid
-     * @return array
-     */
-    public static function testGetUserInfoByOpenid($openid)
-    {
-        $user = Factory::wechat()->user;
-        $userInfo = $user->get($openid);
-        return [
-            'result' => $userInfo
-        ];
-    }
-
-    /**
-     * 微信账号登陆
-     * 当openId未注册时，自动调用注册，然后进行登陆操作
-     * @default enable
-     * @param string $openid   页面get到的openid
-     * @param string $token    页面get到的token
-     * @return array
-     * <pre>
-     * (1)成功时返回：
-     * [
-     *  'once' => [
-     *      'token' => '',
-     *      'userId' =>> ''
-     *  ]
-     * ]
-     * (2)失败时返回:
-     * [
-     *  'once' => false
-     * ]
-     * </pre>
-     *
-     */
-    public static function openidLogin($openid, $token)
-    {
-        $openid = filter_var($openid, FILTER_SANITIZE_STRING);
-        if (empty($openid)) {
-            return Err::setLastErr(E_NO_INCOMING_OPENID);   // 未传入openid
-        }
-        $ur = Factory::userRepository();
-        $userId = $ur->openid2UserId($openid);
-        if (empty($userId)) {
-            // 用户openid未在平台注册, 进行注册操作
-            $wechatInfo = self::getUserInfoByOpenid($openid);
-            $userInfo = [];
-            if (!empty($wechatInfo['nickname'])) {
-                $userInfo['nickname'] = $wechatInfo['nickname'];
-            }
-            $userInfo['type'] = UserInfo::UT_NORMAL;
-            $userInfo['accountType'] = UserInfo::ACCOUNT_WECHAT;
-            $userId = $ur->wechatReg($wechatInfo, $userInfo);    // 注册
-        }
-        $token = parent::openidLogin($userId, $openid, $token);
-        if (empty($token)) {
-            return [
-                'once' => false
-            ];
-        }
-        return [
-            'once' => [
-                'token' => $token,
-                'userId' => $userId
-            ]
-        ];
-    }
-
-    /**
-     * 前端获取jsSign
-     * @default enable
-     * @param array $apis 配置中的jsApiList，必须填写
-     * <pre>
-     * [
-     *  'onMenuShareQQ', 'onMenuShareWeibo'
-     * ]
-     * </pre>
-     * @param string $url   设置当前url， 会在result中返回
-     * <pre>http://www.baidu.com</pre>
-     * @return array 返回jsSign信息
-     * <pre>
-     * [
-     *  'debug' => true,
-     *  'beta' => false,
-     *  'appId' => '*****',
-     *  'nonceStr' => '******',             // 随机字符串
-     *  'timestamp' => 1445478454,          // 生成签名的时间戳
-     *  'url' => 'http://www.baidu.com',    // 页面url, 当页面url变更时，需要重新获取jsSign
-     *  'signature' => '*****',             // 签名
-     *  'jsApiList' => [                    // 需要使用的js接口列表
-     *      'onMenuShareQQ', 'onMenuShareWeibo'
-     *  ]
-     * ]
-     * </pre>
-     */
-    public static function getJsSign($apis = [], $url = '')
-    {
-        $userId = self::getClientUserId();
-        if (empty($userId)) return Err::setLastErr(E_NO_LOGIN); // 未登陆
-        if (!is_array($apis) || !filter_var($url, FILTER_VALIDATE_URL)) return Err::setLastErr(E_PARAM_ERROR);  // 参数错误
-        $js = Factory::wechat()->js;
-        $js->setUrl($url);
-        $result = $js->config($apis, true, false, false);
-        return [
-            'result' => $result
-        ];
-    }
-
-    // 消息发送相关
-
-    /**
-     * 推送一条消息
-     * @default enable
-     * @param $messageType  string  发送消息类型
-     * @param $message      string  消息表标识
-     * @param $user         mixed   接收者
-     * @return array
-     */
-    public static function sendBroadcast($messageType, $message, $user = null)
-    {
-        $typeList = ['news', 'text', 'voice', 'image', 'video', 'card'];
-        if (false === array_search($messageType, $typeList)) return Err::setLastErr(E_WECHAT_MATERIAL_NOT_EXIST_TYPE);  // 不存在的类型
-        $broadcast = Factory::wechat()->broadcast;
-        $sendRet = $broadcast->send($messageType, $message, $user);
-        return [
-            'result' => Util::obj2Arr($sendRet)
-        ];
-    }
-
-    // oauth 授权相关
-    // 三种方式：
-    // 1. (跳转4次)
-    // startOauth
-    // 转到wechat授权链接
-    // 跳转到receiveOauth
-    // 达到toUrl地址，完成操作
-    // 2. (跳转3次)
-    // 直接访问wechat授权链接
-    // 跳转到receiveOauth
-    // 达到toUrl地址，完成操作
-    // 3. (跳转2次, 调用接口两次)
-    // 直接访问wechat授权链接
-    // 直接达到目的地址
-    // 访问code2Openid，获取openid与token
-    // 使用openid与token进行登陆操作
-    // 4. (跳转2次，调用接口一次)
-    // 访问oauth页面
-    // 达到目的地址
-    // 访问codeLogin接口进行登陆操作
-
-    /**
-     * 发起授权，供用户点击进入微信时使用。
-     * 将设置回调地址为 receiveOauth 接口
-     * @default enable
-     */
-    public static function startOauth()
-    {
-        /* @var $oauth WeChatProvider**/
-        $oauth = Factory::wechat()->oauth;
-        /* @var $response RedirectResponse**/
-        $response = $oauth->redirect();
-        $headers = $response->headers;
-        foreach ($headers as $key => $header) {
-            foreach ($header as $item) {
-                echo $key . ':' . $item . PHP_EOL;
-            }
-        }
-    }
-
-    /**
-     * 获取Oauth验证跳转链接
-     * @default enable
-     * @param null $url     Oauth验证后跳转地址
-     * @return array
-     */
-    public static function getOauthUrl($url = null)
-    {
-        if (empty($url)) $url = null;
-        /* @var $oauth WeChatProvider**/
-        $oauth = Factory::wechat()->oauth;
-        /* @var $response RedirectResponse**/
-        $response = $oauth->redirect($url);
-        $headers = $response->headers;
-        $url = '';
-        foreach ($headers as $key => $header) {
-            foreach ($header as $item) {
-                if ($key == 'location') {
-                    $url = $item;
-                }
-            }
-        }
-        return [
-            'result' => $url
-        ];
-    }
-
-    /**
-     * 接收授权的回调数据。
-     * 正确处理时将进行页面跳转，跳转后的页面将GET到参数：=openid=***&token=****
-     * @default enable
-     */
-    public static function receiveOauth()
-    {
-        if (!empty($_GET)) {
-            try {
-                /* @var $oauth WeChatProvider**/
-                $oauth = Factory::wechat()->oauth;
-                $oauth->setRequest(Factory::getRequestObj());
-                $user = $oauth->user();
-                $openid = $user->getId();
-                // 生成openid登陆使用的token
-                $token = self::getOpenidLoginToken($openid);
-                Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                    'openid' => $openid,
-                    'token' => $token
-                ]);
-                $toUrl = 'http://proxy-pass.js.yiyuan.zhannnnn.top' . '?openid=' . $openid . '&token=' . $token;
-                echo 'Cache-Control: no-cache' . PHP_EOL;
-                echo 'Location: '. $toUrl . PHP_EOL;
-            } catch (\Exception $e) {
-                Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
-            }
-
-        }
-    }
-
-    /**
-     * 获取自己的微信相关数据
-     * @default enable
-     * @return array
-     * <pre>
-     * [
-     *  'result' => [
-     *      'id' => 0,
-     *      'userId' => 0,
-     *      'openid' => '',
-     *      'nickname' => '',       // 用户微信昵称
-     *      'sex' => 0,             // 用户性别
-     *      'city' => '',           // 城市
-     *      'country' => '',        // 国家
-     *      'province' => '',       // 省
-     *      'headimgurl' => ''      // 头像，可自定义不同规格
-     *  ]
-     * ]
-     * </pre>
-     */
-    public static function getSelfWechatInfo()
-    {
-        $userId = self::getClientUserId();
-        if (empty($userId)) return Err::setLastErr(E_NO_LOGIN);
-        $userInfo = Factory::userRepository()->getWechatInfoByUserId($userId);
-        return [
-            'result' => $userInfo
-        ];
-    }
-
-    /**
-     * 根据code码，获取用于登陆的openid和token
-     * @default enable
-     * @param $code
-     * @return array
-     * <pre>
-     * [
-     *  'token' => '',
-     *  'openid' => ''
-     * ]
-     * </pre>
-     */
-    public static function code2Openid($code = '')
-    {
-        try {
-            /* @var $oauth WeChatProvider**/
-            $oauth = Factory::wechat()->oauth;
-            $accessToken = $oauth->getAccessToken($code);
-            $user = $oauth->user($accessToken);
-            $openid = $user->getId();
-            $token = self::getOpenidLoginToken($openid);
-            return [
-                'token' => $token,
-                'openid' => $openid
-            ];
-        } catch (\Exception $e) {
-            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $e
-            ]);
-            return Err::setLastErr(E_WECHAT_INVALID_CODE);      // 无效的code
-        }
-
-    }
-
-    /**
-     * 使用code码进行登陆
-     * @default enable
-     * @param $code
-     * @return array
-     * <pre>
-     * [
-     *  'once' => [
-     *      'token' => '',
-     *      'userId' => 0
-     *  ],
-     *  'openid' => 0
-     * ]
-     * </pre>
-     */
-    public static function codeLogin($code)
-    {
-        try {
-            $exchangeRet = self::code2Openid($code);
-            if (empty($exchangeRet)) return Err::setLastErr(E_WECHAT_INVALID_CODE); // 无效的code码
-            $loginRet = self::openidLogin($exchangeRet['openid'], $exchangeRet['token']);
-            if (!empty($loginRet)) {
-                $loginRet['openid'] = $exchangeRet['openid'];
-            }
-            return $loginRet;
-        } catch (\Exception $e) {
-            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $e
-            ]);
-            return Err::setLastErr(E_WECHAT_CODE_LOGIN_FAIL);   // code码登陆失败
-        }
-    }
-
-    // openid映射, 临时用
-
-    /**
-     * 测试openid映射正式openid
-     * @default enable
-     * @test
-     * @param $testOpenid
-     * @return string
-     */
-    public static function testOpenid2FormalOpenid($testOpenid)
-    {
-        $mapping = self::getMappingTable();
-        $formalOpenid = array_search($testOpenid, $mapping);
-        return $formalOpenid;
-    }
-
-    /**
-     * 正式openid映射测试openid
-     * @default enable
-     * @test
-     * @param $formalOpenid
-     * @return string
-     */
-    public static function formalOpenid2TestOpenid($formalOpenid)
-    {
-        $mapping = self::getMappingTable();
-        if (!empty($mapping[$formalOpenid])) return $mapping[$formalOpenid];
-        return '';
-    }
-
-    /**
-     * 获取映射列表  正式 =》 测试
-     * @test
-     */
-    private static function getMappingTable()
-    {
-        $mapping = [
-            'ojwDCvxTg3rjcah_03rbXQIX-aO8' => 'oy8ouxAIHp8Kukxp9c2b1nBHLDCE',           // carry
-            'ojwDCv-BK_GBuHa9uqplprTCeMHk' => 'oy8ouxBqBt2QQCCj0NZNTXtN325M',           // zhan
-            'ojwDCv1XBrOWF2pQppKKW0L9e-W8' => 'oy8ouxGPQnrbwdQaomgJ0K-cirjw',           // ccm
-            'ojwDCv8jhmuQTDa-F-geJKSKaBn0' => 'oy8ouxE0OcEiVpUXOsQg9IyvyHeQ',        // test-carry
-            'ojwDCv36enzQszQWQPtDvtoMTpSA' => 'oy8ouxMNIdMGX03uZlmQHh-nWgS0',        //　hbh
-            'ojwDCvyjGpz3JNBDPDvsk_Oyqn0o' => 'oy8ouxFgB_iLyO9oSbSbjveM0-no',        // xtp
-            'ojwDCv_qp_9A-jOEiSBtjcAhY-8M' => 'oy8ouxGzv9zAXsOT3za97orIjAD8',   // fenghe
-            'ojwDCv8vud8ZQPmQ641dAoWlEBis' => 'oy8ouxKln1mdiYUQKc_wY5snpT4s',   // 邵丽
-            'ojwDCvzuisKEentUHh0DIDEx2PrU' => 'oy8ouxCavVZ2mfnwQEddBv8r6oB8',     //
-            'ojwDCv4DFlpPPaKFuxTX6OjzHwRk' => 'oy8ouxDo_klH1qCKb1sWdmVrCyb8',       // 紫阳
-            'ojwDCv5A3it3717_tbeJtorYTMjA' => 'oy8ouxD0ZcxBu92VWwM8NJttDQn8',       // 胡猛
-        ];
-        return $mapping;
-    }
-
-    //素材管理
-
-    /**
-     * post方式上传永久素材中的图片，支持多张同时上传，限制：1M以下大小，支持 bmp/png/jpeg/jpg/gif 格式
-     * @default enable
-     */
-    public static function materialUploadImage()
-    {
-        if (empty($_FILES)) return Err::setLastErr(E_WECHAT_NOT_UPLOAD_FILE);   // 未上传图片
-        $material = Factory::wechat()->material;
-        $saveRet = Util::saveFile($_FILES);
-        $uploadRet = [];
-        foreach ($saveRet as $item) {
-            $fullPath = $item['fullPath'];
-            $uploadRet[] = $material->uploadImage($fullPath);
-        }
-        return [
-            'result' => Util::obj2Arr($uploadRet)
-        ];
-    }
-
-    /**
-     * 上传永久图文消息
-     * @default enable
-     * @param $opt  array
-     * <pre>
-     * [
-     *  'thumb_media_id'    => '',  // 图文消息的蒙面图片素材id(必须时永久mediaId)
-     *  'author'            => '',  // 作者
-     *  'title'             => '',  // 标题
-     *  'content'           => '',  // 图文消息的具体内容（支持html标记，必须少于2万字，小于1M，会去除JS）
-     *  'digest'            => '',  // 图文消息摘要，仅有单图文消息才有摘要，多图文此处为空
-     *  'show_cover'        => '',  // 是否显示封面，用1， 0 表示
-     *  'source_url'        => '',  // 阅读原文后访问的url
-     * ]
-     * </pre>
-     * @return array
-     */
-    public static function materialUploadArticle($opt)
-    {
-        $material = Factory::wechat()->material;
-        $opt = array_filter(filter_var_array($opt, [
-            'thumb_media_id' => FILTER_SANITIZE_STRING,
-            'author' => FILTER_SANITIZE_STRING,
-            'title' => FILTER_SANITIZE_STRING,
-            'content' => FILTER_SANITIZE_STRING,
-            'digest' => FILTER_SANITIZE_STRING,
-            'show_cover' => FILTER_VALIDATE_INT,
-            'source_url' => FILTER_VALIDATE_URL
-        ]), function ($a) {return ($a===false || $a===null)?false:true;});
-        Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-            $opt
-        ]);
-
-        $article = new Article($opt);
-        $uploadRet = $material->uploadArticle($article);
-        return [
-            'result' => Util::obj2Arr($uploadRet)
-        ];
-    }
-
-    /**
-     * 获取永久素材
-     * @default enable
-     * @param $mediaId  string 素材id
-     * @return array
-     * <pre>
-     * [
-     *  'result' => [
-     *      'news_item' => [
-     *          [
-     *              'title' => '',
-     *              'thumb_media_id' => '',
-     *              'show_cover_pic' => '',
-     *              'author' => '',
-     *              'digest' =>'',
-     *              'content' => '',
-     *              'url' => '',
-     *              'content_source_rul' => ''
-     *          ],
-     *          ... //多图文消息有多篇文章
-     *      ],
-     *  ]
-     * ]
-     * </pre>
-     */
-    public static function materialGetResource($mediaId)
-    {
-        $material = Factory::wechat()->material;
-        $resource = $material->get($mediaId);
-        return [
-            'result' => Util::obj2Arr($resource)
-        ];
-    }
-
-    /**
-     * 获取永久素材列表
-     * @default enable
-     * @param $type string      可选值：['image', 'video', 'voice', 'news']
-     * @param int $offset
-     * @param int $count
-     * @return array
-     * <pre>
-     * 图片、语音、视频 等类型的返回如下
-     * [
-     *  'result' => [
-     *      'total_count' => 0,
-     *      'item_count' => 0,
-     *      'item' => [
-     *          [
-     *              'media_id' => 0,
-     *              'name' => '',
-     *              'update_time' => 0,
-     *              'url' => ''
-     *          ],
-     *          ...
-     *      ]
-     *  ]
-     * ]
-     * </pre>
-     * 永久图文消息素材列表的响应如下：
-     * [
-     *  'result' => [
-     *      'total_count' => 0,
-     *      'item_count' => 0,
-     *      'item' => [
-     *          [
-     *              'media_id' => 0,
-     *              'content' => [
-     *                  'news_item' => [
-     *                      [
-     *                          'title' => '',
-     *                          'thumb_media_id' => 0,
-     *                          'show_cover_pic' => 0,
-     *                          'author' => '',
-     *                          'digest' => '',
-     *                          'content' => '',
-     *                          'url' => '',
-     *                          'content_source_url' => ''
-     *                      ],
-     *                      ... // 多图文消息中的多文章
-     *                  ]
-     *              ],
-     *              'update_time' => 0
-     *          ],
-     *          ... // 可能有多个图文消息item结构
-     *      ]
-     *  ]
-     * ]
-     * <pre>
-     * [
-     *
-     * ]
-     * </pre>
-     */
-    public static function materialGetResourceList($type, $offset = 0, $count = 20)
-    {
-        $typeList = ['image', 'video', 'voice', 'news'];
-        if (false === array_search($type, $typeList)) return Err::setLastErr(E_WECHAT_MATERIAL_NOT_EXIST_TYPE);  // 不存在的永久素材类型
-        $material = Factory::wechat()->material;
-        $lists = $material->lists($type, $offset, $count);
-        return [
-            'result' => Util::obj2Arr($lists)
-        ];
-    }
-
-    /**
-     * 获取素材计数
-     * @default enable
-     * <pre>
-     * [
-     *  'result' => [
-     *      'voice_count' => 0,
-     *      'video_count' => 0,
-     *      'image_count' => 0,
-     *      'news_count'  => 0
-     *  ]
-     * ]
-     * </pre>
-     */
-    public static function materialGetStats()
-    {
-        $material = Factory::wechat()->material;
-        $stats = $material->stats();
-        return [
-            'result' => Util::obj2Arr($stats)
-        ];
-    }
-
-    /**
-     * 删除永久素材
-     * @default enable
-     * @param $mediaId
-     * @return array
-     */
-    public static function materialDelete($mediaId)
-    {
-        $material = Factory::wechat()->material;
-        $delRet= $material->delete($mediaId);
-        return [
-            'result' => $delRet
-        ];
     }
 
     // 二维码
